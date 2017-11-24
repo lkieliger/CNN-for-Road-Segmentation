@@ -1,4 +1,4 @@
 .idea/
 .ipynb_checkpoints/
 tmp/
-
+predictions_training/*
