@@ -1,5 +1,7 @@
 from program_constants import *
+from PIL import Image
 import numpy
+
 
 def img_crop(im, w, h):
     """
@@ -8,7 +10,7 @@ def img_crop(im, w, h):
     :param im: The image from which to extract the patches
     :param w: The patches width
     :param h: The patches height
-    :return: A list containing all the extracted patches in column order
+    :return: A list containing all the extracted patches in row order
     """
     list_patches = []
     imgwidth = im.shape[0]
