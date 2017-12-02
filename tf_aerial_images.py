@@ -12,6 +12,12 @@ import urllib
 import matplotlib.image as mpimg
 from PIL import Image
 
+from image_helpers import img_crop
+from image_helpers import concatenate_images
+from image_helpers import img_float_to_uint8
+from image_helpers import label_to_img
+from image_helpers import make_img_overlay
+
 import code
 
 import tensorflow.python.platform
@@ -19,42 +25,12 @@ import tensorflow.python.platform
 import numpy
 import tensorflow as tf
 
-NUM_CHANNELS = 3  # RGB images
-PIXEL_DEPTH = 255
-NUM_LABELS = 2
-TRAINING_SIZE = 20
-VALIDATION_SIZE = 5  # Size of the validation set.
-SEED = 66478  # Set to None for random seed.
-BATCH_SIZE = 16  # 64
-NUM_EPOCHS = 5
-RESTORE_MODEL = False  # If True, restore existing model instead of training a new one
-RECORDING_STEP = 1000
-
-# Set image patch size in pixels
-# IMG_PATCH_SIZE should be a multiple of 4
-# image size should be an integer multiple of this number!
-IMG_PATCH_SIZE = 16
+from program_constants import *
 
 tf.app.flags.DEFINE_string('train_dir', '/tmp/mnist',
                            """Directory where to write event logs """
                            """and checkpoint.""")
 FLAGS = tf.app.flags.FLAGS
-
-
-# Extract patches from a given image
-def img_crop(im, w, h):
-    list_patches = []
-    imgwidth = im.shape[0]
-    imgheight = im.shape[1]
-    is_2d = len(im.shape) < 3
-    for i in range(0, imgheight, h):
-        for j in range(0, imgwidth, w):
-            if is_2d:
-                im_patch = im[j:j + w, i:i + h]
-            else:
-                im_patch = im[j:j + w, i:i + h, :]
-            list_patches.append(im_patch)
-    return list_patches
 
 
 def extract_data(filename, num_images):
@@ -142,57 +118,6 @@ def print_predictions(predictions, labels):
     print(str(max_labels) + ' ' + str(max_predictions))
 
 
-# Convert array of labels to an image
-def label_to_img(imgwidth, imgheight, w, h, labels):
-    array_labels = numpy.zeros([imgwidth, imgheight])
-    idx = 0
-    for i in range(0, imgheight, h):
-        for j in range(0, imgwidth, w):
-            if labels[idx][0] > 0.5:
-                l = 1
-            else:
-                l = 0
-            array_labels[j:j + w, i:i + h] = l
-            idx = idx + 1
-    return array_labels
-
-
-def img_float_to_uint8(img):
-    rimg = img - numpy.min(img)
-    rimg = (rimg / numpy.max(rimg) * PIXEL_DEPTH).round().astype(numpy.uint8)
-    return rimg
-
-
-def concatenate_images(img, gt_img):
-    nChannels = len(gt_img.shape)
-    w = gt_img.shape[0]
-    h = gt_img.shape[1]
-    if nChannels == 3:
-        cimg = numpy.concatenate((img, gt_img), axis=1)
-    else:
-        gt_img_3c = numpy.zeros((w, h, 3), dtype=numpy.uint8)
-        gt_img8 = img_float_to_uint8(gt_img)
-        gt_img_3c[:, :, 0] = gt_img8
-        gt_img_3c[:, :, 1] = gt_img8
-        gt_img_3c[:, :, 2] = gt_img8
-        img8 = img_float_to_uint8(img)
-        cimg = numpy.concatenate((img8, gt_img_3c), axis=1)
-    return cimg
-
-
-def make_img_overlay(img, predicted_img):
-    w = img.shape[0]
-    h = img.shape[1]
-    color_mask = numpy.zeros((w, h, 3), dtype=numpy.uint8)
-    color_mask[:, :, 0] = predicted_img * PIXEL_DEPTH
-
-    img8 = img_float_to_uint8(img)
-    background = Image.fromarray(img8, 'RGB').convert("RGBA")
-    overlay = Image.fromarray(color_mask, 'RGB').convert("RGBA")
-    new_img = Image.blend(background, overlay, 0.2)
-    return new_img
-
-
 def main(argv=None):  # pylint: disable=unused-argument
 
     data_dir = 'data/training/'
@@ -248,21 +173,29 @@ def main(argv=None):  # pylint: disable=unused-argument
     # The variables below hold all the trainable weights. They are passed an
     # initial value which will be assigned when when we call:
     # {tf.initialize_all_variables().run()}
+
+    # First layer CONVOLVED 5
     conv1_weights = tf.Variable(
         tf.truncated_normal([5, 5, NUM_CHANNELS, 32],  # 5x5 filter, depth 32.
                             stddev=0.1,
                             seed=SEED))
     conv1_biases = tf.Variable(tf.zeros([32]))
+
+    # Second layer CONVOLVED 5
     conv2_weights = tf.Variable(
         tf.truncated_normal([5, 5, 32, 64],
                             stddev=0.1,
                             seed=SEED))
     conv2_biases = tf.Variable(tf.constant(0.1, shape=[64]))
+
+    # Third layer FULLY CONNECTED
     fc1_weights = tf.Variable(  # fully connected, depth 512.
         tf.truncated_normal([int(IMG_PATCH_SIZE / 4 * IMG_PATCH_SIZE / 4 * 64), 512],
                             stddev=0.1,
                             seed=SEED))
     fc1_biases = tf.Variable(tf.constant(0.1, shape=[512]))
+
+    # Fourth layer FULLY CONNECTED
     fc2_weights = tf.Variable(
         tf.truncated_normal([512, NUM_LABELS],
                             stddev=0.1,
@@ -293,7 +226,7 @@ def main(argv=None):  # pylint: disable=unused-argument
         V = tf.reshape(V, (-1, img_w, img_h, 1))
         return V
 
-    # Get prediction for given input image 
+    # Get prediction for given input image
     def get_prediction(img):
         data = numpy.asarray(img_crop(img, IMG_PATCH_SIZE, IMG_PATCH_SIZE))
         data_node = tf.constant(data)
