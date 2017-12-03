@@ -1,6 +1,7 @@
 from program_constants import *
 from PIL import Image
 import numpy
+import tensorflow as tf
 
 
 def img_crop(im, w, h):
@@ -116,3 +117,42 @@ def make_img_overlay(img, predicted_img):
     overlay = Image.fromarray(color_mask, 'RGB').convert("RGBA")
     new_img = Image.blend(background, overlay, 0.2)
     return new_img
+
+
+def get_image_summary(img, idx=0):
+    """
+    Make an image summary for 4d tensor image with index idx
+    
+    :param img: The image tensor for which to produce the summary
+    :param idx: The index of the image to summarize
+    
+    :return: The summary 
+    """
+    V = tf.slice(img, (0, 0, 0, idx), (1, -1, -1, 1))
+    img_w = img.get_shape().as_list()[1]
+    img_h = img.get_shape().as_list()[2]
+    min_value = tf.reduce_min(V)
+    V = V - min_value
+    max_value = tf.reduce_max(V)
+    V = V / (max_value * PIXEL_DEPTH)
+    V = tf.reshape(V, (img_w, img_h, 1))
+    V = tf.transpose(V, (2, 0, 1))
+    V = tf.reshape(V, (-1, img_w, img_h, 1))
+    return V
+
+
+def get_image_summary_3d(img):
+    """
+    Make an image summary for 3d tensor image 
+    
+    :param img: The image tensor for which to produce the summary
+    
+    :return: The summary
+    """
+    V = tf.slice(img, (0, 0, 0), (1, -1, -1))
+    img_w = img.get_shape().as_list()[1]
+    img_h = img.get_shape().as_list()[2]
+    V = tf.reshape(V, (img_w, img_h, 1))
+    V = tf.transpose(V, (2, 0, 1))
+    V = tf.reshape(V, (-1, img_w, img_h, 1))
+    return V
