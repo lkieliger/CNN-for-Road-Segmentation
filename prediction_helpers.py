@@ -58,7 +58,7 @@ def get_prediction(img, convolutional_model: Model, tensorflow_session: tf.Sessi
     return img_prediction
 
 
-def get_prediction_with_groundtruth(filename, image_idx):
+def get_prediction_with_groundtruth(filename, image_idx, convolutional_model: Model, tensorflow_session: tf.Session):
     """
     Get a concatenation of the prediction and groundtruth for a given input file
     
@@ -72,13 +72,13 @@ def get_prediction_with_groundtruth(filename, image_idx):
     image_filename = filename + imageid + ".png"
     img = mpimg.imread(image_filename)
 
-    img_prediction = get_prediction(img)
+    img_prediction = get_prediction(img, convolutional_model, tensorflow_session)
     cimg = concatenate_images(img, img_prediction)
 
     return cimg
 
 
-def get_prediction_with_overlay(filename, image_idx):
+def get_prediction_with_overlay(filename, image_idx, convolutional_model: Model, tensorflow_session: tf.Session):
     """
     Get the original image with the predictions overlaid on top of it
     
@@ -92,7 +92,7 @@ def get_prediction_with_overlay(filename, image_idx):
     image_filename = filename + imageid + ".png"
     img = mpimg.imread(image_filename)
 
-    img_prediction = get_prediction(img)
+    img_prediction = get_prediction(img, convolutional_model, tensorflow_session)
     oimg = make_img_overlay(img, img_prediction)
 
     return oimg
