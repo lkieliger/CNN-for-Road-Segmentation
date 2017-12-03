@@ -1,8 +1,10 @@
-from image_helpers import img_crop
-from program_constants import *
-import numpy
 import os
+
 import matplotlib.image as mpimg
+import numpy
+
+from helpers.image_helpers import img_crop
+from program_constants import *
 
 
 def extract_data(filename, num_images):

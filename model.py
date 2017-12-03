@@ -1,7 +1,8 @@
 import tensorflow as tf
+
+from helpers.image_helpers import get_image_summary
 from program_constants import *
-from image_helpers import get_image_summary
-from image_helpers import get_image_summary_3d
+
 
 class Model:
 

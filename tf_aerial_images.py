@@ -1,18 +1,11 @@
-"""
-Baseline for machine learning project on road segmentation.
-This simple baseline consits of a CNN with two convolutional+pooling layers with a soft-max loss
-
-Credits: Aurelien Lucchi, ETH Zürich
-"""
-
 import sys
 
-from data_helpers import *
-from image_helpers import *
+from helpers.image_helpers import *
+from helpers.prediction_helpers import *
+from helpers.data_helpers import *
 from learner import Learner
 from metrics import *
 from model import *
-from prediction_helpers import *
 from program_constants import *
 
 tf.app.flags.DEFINE_string('train_dir', '/tmp/mnist',

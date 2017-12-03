@@ -1,11 +1,10 @@
-import numpy
 import matplotlib.image as mpimg
+import numpy
 import tensorflow as tf
 
+from helpers.image_helpers import make_img_overlay, img_crop, concatenate_images, label_to_img
 from model import Model
 from program_constants import *
-
-from image_helpers import make_img_overlay, img_crop, concatenate_images, label_to_img
 
 
 def write_predictions_to_file(predictions, labels, filename):
