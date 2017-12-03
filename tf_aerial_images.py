@@ -118,14 +118,14 @@ def main(argv=None):  # pylint: disable=unused-argument
 
                     if step % RECORDING_STEP == 0:
 
-                        summary_str, _, l, lr, predictions, _ = tensorflow_session.run(
+                        summary_str, _, l, lr, predictions, _, _, _, _ = tensorflow_session.run(
                             [summary_op] + learner.get_run_ops() + learner.get_metric_update_ops(),
                             feed_dict=learner.feed_dictionary)
                         # summary_str = s.run(summary_op, feed_dict=feed_dict)
                         summary_writer.add_summary(summary_str, step)
                         summary_writer.flush()
 
-                        # print_predictions(predictions, batch_labels)
+                        #print_predictions(predictions, batch_labels)
 
                         print('Epoch %.2f' % (float(step) * BATCH_SIZE / train_size))
                         print('Minibatch loss: %.3f, learning rate: %.6f' % (l, lr))
@@ -134,12 +134,22 @@ def main(argv=None):  # pylint: disable=unused-argument
                         sys.stdout.flush()
                     else:
                         # Run the graph and fetch some of the nodes.
-                        _, l, lr, predictions, _= tensorflow_session.run(
+                        _, l, lr, predictions, _, _, _, _= tensorflow_session.run(
                             learner.get_run_ops() + learner.get_metric_update_ops(),
                             feed_dict=learner.get_feed_dictionnary())
 
+                        #print_predictions(predictions, batch_labels)
 
-                print("Learner accuracy at epoch {}: {:.2%}".format(iepoch, learner.acc.eval()))
+
+                tp, fp, tn, fn = tensorflow_session.run(learner.get_metric_ops())
+                acc = accuracy(tp, fp, tn, fn)
+                pre = precision(tp, fp)
+                rec = recall(tp, fn)
+                f1s = f1_score(tp, fp, fn)
+
+                print("Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}, F1: {:.2%}".format(acc, pre, rec, f1s))
+                print("TP: {}, TN: {}, FP: {}, FN: {}".format(tp, tn, fp, fn))
+
 
                 # Save the variables to disk.
                 save_path = learner.saver.save(tensorflow_session, FLAGS.train_dir + "/model.ckpt")

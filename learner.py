@@ -8,20 +8,6 @@ class Learner:
     def __init__(self, train_data, train_size):
         self.train_data = train_data
         self.train_size = train_size
-
-        self.train_data_node = None
-        self.train_labels_node = None
-        self.train_all_data_node = None
-        self.regularizers = None
-        self.batch = None
-        self.learning_rate = None
-        self.optimizer = None
-        self.logits = None
-        self.loss = None
-        self.acc= None
-        self.acc_op= None
-        self.feed_dictionary = None
-
         self._init_learner()
 
     def _init_learner(self):
@@ -99,9 +85,28 @@ class Learner:
         tf.summary.scalar('loss', self.loss)
 
     def _init_metrics(self):
-        self.acc, self.acc_op = tf.metrics.accuracy(
-            labels=self.train_labels_node,
-            predictions=tf.one_hot(tf.argmax(self.train_prediction, 1), 2)
+
+        l = tf.argmax(self.train_labels_node, 1)
+        p = tf.argmax(self.train_prediction, 1)
+
+        self.true_pos, self.true_pos_op = tf.contrib.metrics.streaming_true_positives(
+            labels=l,
+            predictions=p
+        )
+
+        self.false_pos, self.false_pos_op = tf.contrib.metrics.streaming_false_positives(
+            labels=l,
+            predictions=p
+        )
+
+        self.true_neg, self.true_neg_op = tf.contrib.metrics.streaming_true_negatives(
+            labels=l,
+            predictions=p
+        )
+
+        self.false_neg, self.false_neg_op = tf.contrib.metrics.streaming_false_negatives(
+            labels=l,
+            predictions=p,
         )
 
     def _init_params_summaries(self):
@@ -136,7 +141,7 @@ class Learner:
         return [self.optimizer, self.loss, self.learning_rate, self.train_prediction]
 
     def get_metric_update_ops(self):
-        return [self.acc_op]
+        return [self.true_pos_op, self.false_pos_op, self.true_neg_op, self.false_neg_op]
 
     def get_metric_ops(self):
-        return [self.acc]
+        return [self.true_pos, self.false_pos, self.true_neg, self.false_neg]
