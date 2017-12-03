@@ -14,6 +14,7 @@ import tensorflow as tf
 from model import *
 from data_helpers import *
 from image_helpers import *
+from prediction_helpers import *
 from metrics import *
 from program_constants import *
 
@@ -74,41 +75,6 @@ def main(argv=None):  # pylint: disable=unused-argument
     train_labels_node = tf.placeholder(tf.float32,
                                        shape=(BATCH_SIZE, NUM_LABELS))
     train_all_data_node = tf.constant(train_data)
-
-
-    # Get prediction for given input image
-    def get_prediction(img):
-        data = numpy.asarray(img_crop(img, IMG_PATCH_SIZE, IMG_PATCH_SIZE))
-        data_node = tf.constant(data)
-        output = tf.nn.softmax(cNNModel.model_func()(data_node))
-        output_prediction = s.run(output)
-        img_prediction = label_to_img(img.shape[0], img.shape[1], IMG_PATCH_SIZE, IMG_PATCH_SIZE, output_prediction)
-
-        return img_prediction
-
-    # Get a concatenation of the prediction and groundtruth for given input file
-    def get_prediction_with_groundtruth(filename, image_idx):
-
-        imageid = "satImage_%.3d" % image_idx
-        image_filename = filename + imageid + ".png"
-        img = mpimg.imread(image_filename)
-
-        img_prediction = get_prediction(img)
-        cimg = concatenate_images(img, img_prediction)
-
-        return cimg
-
-    # Get prediction overlaid on the original image for given input file
-    def get_prediction_with_overlay(filename, image_idx):
-
-        imageid = "satImage_%.3d" % image_idx
-        image_filename = filename + imageid + ".png"
-        img = mpimg.imread(image_filename)
-
-        img_prediction = get_prediction(img)
-        oimg = make_img_overlay(img, img_prediction)
-
-        return oimg
 
     cNNModel = Model()
 
