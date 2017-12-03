@@ -12,17 +12,11 @@ import urllib
 import matplotlib.image as mpimg
 from PIL import Image
 
-from image_helpers import img_crop
-from image_helpers import concatenate_images
-from image_helpers import img_float_to_uint8
-from image_helpers import label_to_img
-from image_helpers import make_img_overlay
-
-from data_helpers import extract_data
-from data_helpers import extract_labels
+from image_helpers import *
+from data_helpers import *
+from metrics import *
 
 import code
-
 import tensorflow.python.platform
 
 import numpy
@@ -35,31 +29,6 @@ tf.app.flags.DEFINE_string('train_dir', '/tmp/mnist',
                            """and checkpoint.""")
 FLAGS = tf.app.flags.FLAGS
 
-
-def error_rate(predictions, labels):
-    """Return the error rate based on dense predictions and 1-hot labels."""
-    return 100.0 - (
-        100.0 *
-        numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1)) /
-        predictions.shape[0])
-
-
-# Write predictions from neural network to a file
-def write_predictions_to_file(predictions, labels, filename):
-    max_labels = numpy.argmax(labels, 1)
-    max_predictions = numpy.argmax(predictions, 1)
-    file = open(filename, "w")
-    n = predictions.shape[0]
-    for i in range(0, n):
-        file.write(max_labels(i) + ' ' + max_predictions(i))
-    file.close()
-
-
-# Print predictions from neural network
-def print_predictions(predictions, labels):
-    max_labels = numpy.argmax(labels, 1)
-    max_predictions = numpy.argmax(predictions, 1)
-    print(str(max_labels) + ' ' + str(max_predictions))
 
 
 def main(argv=None):  # pylint: disable=unused-argument
