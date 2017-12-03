@@ -13,6 +13,16 @@ tf.app.flags.DEFINE_string('train_dir', '/tmp/mnist',
                            """and checkpoint.""")
 FLAGS = tf.app.flags.FLAGS
 
+def output_training_set_results(session, learner, train_data_filename):
+    print("Running prediction on training set")
+    prediction_training_dir = "predictions_training/"
+    if not os.path.isdir(prediction_training_dir):
+        os.mkdir(prediction_training_dir)
+    for i in range(1, TRAINING_SIZE + 1):
+        pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
+        Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
+        oimg = get_prediction_with_overlay(train_data_filename, i, learner.cNNModel, session)
+        oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
 
 def main(argv=None):  # pylint: disable=unused-argument
 
@@ -59,22 +69,22 @@ def main(argv=None):  # pylint: disable=unused-argument
     learner = Learner(train_data, train_size)
 
     # Create a local session to run this computation.
-    with tf.Session() as s:
+    with tf.Session() as tensorflor_session:
 
         if RESTORE_MODEL:
             # Restore variables from disk.
-            learner.saver.restore(s, FLAGS.train_dir + "/model.ckpt")
+            learner.saver.restore(tensorflor_session, FLAGS.train_dir + "/model.ckpt")
             print("Model restored.")
 
         else:
             # Run all the initializers to prepare the trainable parameters.
             init = tf.global_variables_initializer()
-            s.run(init)
+            tensorflor_session.run(init)
             # tf.initialize_all_variables().run()
 
             # Build the summary operation based on the TF collection of Summaries.
             summary_op = tf.summary.merge_all()
-            summary_writer = tf.summary.FileWriter(FLAGS.train_dir, graph_def=s.graph_def)
+            summary_writer = tf.summary.FileWriter(FLAGS.train_dir, graph_def=tensorflor_session.graph_def)
 
             print('Initialized!')
             # Loop through training steps.
@@ -98,15 +108,13 @@ def main(argv=None):  # pylint: disable=unused-argument
                     batch_labels = train_labels[batch_indices]
                     # This dictionary maps the batch data (as a numpy array) to the
                     # node in the graph is should be fed to.
-                    feed_dict = {learner.train_data_node: batch_data,
-                                 learner.train_labels_node: batch_labels}
+                    learner.update_feed_dictionnary(batch_data, batch_labels)
 
                     if step % RECORDING_STEP == 0:
 
-                        summary_str, _, l, lr, predictions = s.run(
-                            [summary_op, learner.optimizer, learner.loss, learner.learning_rate,
-                             learner.train_prediction],
-                            feed_dict=feed_dict)
+                        summary_str, _, l, lr, predictions = tensorflor_session.run(
+                            [summary_op] + learner.get_run_ops(),
+                            feed_dict=learner.feed_dictionnary)
                         # summary_str = s.run(summary_op, feed_dict=feed_dict)
                         summary_writer.add_summary(summary_str, step)
                         summary_writer.flush()
@@ -121,23 +129,16 @@ def main(argv=None):  # pylint: disable=unused-argument
                         sys.stdout.flush()
                     else:
                         # Run the graph and fetch some of the nodes.
-                        _, l, lr, predictions = s.run(
-                            [learner.optimizer, learner.loss, learner.learning_rate, learner.train_prediction],
-                            feed_dict=feed_dict)
+                        _, l, lr, predictions = tensorflor_session.run(
+                            learner.get_run_ops(),
+                            feed_dict=learner.get_feed_dictionnary())
 
                 # Save the variables to disk.
-                save_path = learner.saver.save(s, FLAGS.train_dir + "/model.ckpt")
+                save_path = learner.saver.save(tensorflor_session, FLAGS.train_dir + "/model.ckpt")
                 print("Model saved in file: %s" % save_path)
 
-        print("Running prediction on training set")
-        prediction_training_dir = "predictions_training/"
-        if not os.path.isdir(prediction_training_dir):
-            os.mkdir(prediction_training_dir)
-        for i in range(1, TRAINING_SIZE + 1):
-            pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, s)
-            Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
-            oimg = get_prediction_with_overlay(train_data_filename, i, learner.cNNModel, s)
-            oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
+        output_training_set_results(tensorflor_session, learner, train_data_filename)
+
 
 
 if __name__ == '__main__':

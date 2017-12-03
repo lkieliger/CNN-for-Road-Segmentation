@@ -97,3 +97,15 @@ class Learner:
             norm_grad_i = tf.global_norm([all_grads_node[i]])
             all_grad_norms_node.append(norm_grad_i)
             tf.summary.scalar(all_params_names[i], norm_grad_i)
+
+    def update_feed_dictionnary(self, batch_data, batch_labels):
+        self.feed_dictionnary = {
+            self.train_data_node: batch_data,
+            self.train_labels_node: batch_labels
+        }
+
+    def get_feed_dictionnary(self):
+        return self.feed_dictionnary
+
+    def get_run_ops(self):
+        return [self.optimizer, self.loss, self.learning_rate, self.train_prediction]
