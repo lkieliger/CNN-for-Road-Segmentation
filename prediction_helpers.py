@@ -1,5 +1,15 @@
-# Write predictions from neural network to a file
+import numpy
+
 def write_predictions_to_file(predictions, labels, filename):
+    """
+    Write predictions form a neural network to a file
+    
+    :param predictions: The predictions made by the neural network
+    :param labels: The true class labels 
+    :param filename: The name of the file to be written
+    
+    :return: 
+    """
     max_labels = numpy.argmax(labels, 1)
     max_predictions = numpy.argmax(predictions, 1)
     file = open(filename, "w")
@@ -9,8 +19,15 @@ def write_predictions_to_file(predictions, labels, filename):
     file.close()
 
 
-# Print predictions from neural network
 def print_predictions(predictions, labels):
+    """
+    Print predictions made by a neural network to the console
+    
+    :param predictions: The predictions made by the neural network
+    :param labels: The true class labels
+    
+    :return: 
+    """
     max_labels = numpy.argmax(labels, 1)
     max_predictions = numpy.argmax(predictions, 1)
     print(str(max_labels) + ' ' + str(max_predictions))
