@@ -7,15 +7,12 @@ Credits: Aurelien Lucchi, ETH Zürich
 
 import sys
 
-
-import numpy
-import tensorflow as tf
-
-from model import *
 from data_helpers import *
 from image_helpers import *
-from prediction_helpers import *
+from learner import Learner
 from metrics import *
+from model import *
+from prediction_helpers import *
 from program_constants import *
 
 tf.app.flags.DEFINE_string('train_dir', '/tmp/mnist',
@@ -66,73 +63,14 @@ def main(argv=None):  # pylint: disable=unused-argument
             c1 = c1 + 1
     print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
 
-    # This is where training samples and labels are fed to the graph.
-    # These placeholder nodes will be fed a batch of training data at each
-    # training step using the {feed_dict} argument to the Run() call below.
-    train_data_node = tf.placeholder(
-        tf.float32,
-        shape=(BATCH_SIZE, IMG_PATCH_SIZE, IMG_PATCH_SIZE, NUM_CHANNELS))
-    train_labels_node = tf.placeholder(tf.float32,
-                                       shape=(BATCH_SIZE, NUM_LABELS))
-    train_all_data_node = tf.constant(train_data)
-
-    cNNModel = Model()
-
-    # Training computation: logits + cross-entropy loss.
-    logits = cNNModel.model_func()(train_data_node, True)  # BATCH_SIZE*NUM_LABELS
-    # print 'logits = ' + str(logits.get_shape()) + ' train_labels_node = ' + str(train_labels_node.get_shape())
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-        logits=logits, labels=train_labels_node))
-    tf.summary.scalar('loss', loss)
-
-    all_params_node = [cNNModel.conv1_weights, cNNModel.conv1_biases, cNNModel.conv2_weights, cNNModel.conv2_biases,
-                       cNNModel.fc1_weights, cNNModel.fc1_biases, cNNModel.fc2_weights, cNNModel.fc2_biases]
-    all_params_names = ['conv1_weights', 'conv1_biases', 'conv2_weights', 'conv2_biases', 'fc1_weights', 'fc1_biases',
-                        'fc2_weights', 'fc2_biases']
-    all_grads_node = tf.gradients(loss, all_params_node)
-    all_grad_norms_node = []
-    for i in range(0, len(all_grads_node)):
-        norm_grad_i = tf.global_norm([all_grads_node[i]])
-        all_grad_norms_node.append(norm_grad_i)
-        tf.summary.scalar(all_params_names[i], norm_grad_i)
-
-    # L2 regularization for the fully connected parameters.
-    regularizers = (tf.nn.l2_loss(cNNModel.fc1_weights) + tf.nn.l2_loss(cNNModel.fc1_biases) +
-                    tf.nn.l2_loss(cNNModel.fc2_weights) + tf.nn.l2_loss(cNNModel.fc2_biases))
-    # Add the regularization term to the loss.
-    loss += 5e-4 * regularizers
-
-    # Optimizer: set up a variable that's incremented once per batch and
-    # controls the learning rate decay.
-    batch = tf.Variable(0)
-    # Decay once per epoch, using an exponential schedule starting at 0.01.
-    learning_rate = tf.train.exponential_decay(
-        0.01,  # Base learning rate.
-        batch * BATCH_SIZE,  # Current index into the dataset.
-        train_size,  # Decay step.
-        0.95,  # Decay rate.
-        staircase=True)
-    tf.summary.scalar('learning_rate', learning_rate)
-
-    # Use simple momentum for the optimization.
-    optimizer = tf.train.MomentumOptimizer(learning_rate,
-                                           0.0).minimize(loss,
-                                                         global_step=batch)
-
-    # Predictions for the minibatch, validation set and test set.
-    train_prediction = tf.nn.softmax(logits)
-    # We'll compute them only once in a while by calling their {eval()} method.
-    train_all_prediction = tf.nn.softmax(cNNModel.model_func()(train_all_data_node))
-
-    # Add ops to save and restore all the variables.
-    saver = tf.train.Saver()
+    learner = Learner(train_data, train_size)
 
     # Create a local session to run this computation.
     with tf.Session() as s:
 
         if RESTORE_MODEL:
             # Restore variables from disk.
-            saver.restore(s, FLAGS.train_dir + "/model.ckpt")
+            learner.saver.restore(s, FLAGS.train_dir + "/model.ckpt")
             print("Model restored.")
 
         else:
@@ -167,13 +105,14 @@ def main(argv=None):  # pylint: disable=unused-argument
                     batch_labels = train_labels[batch_indices]
                     # This dictionary maps the batch data (as a numpy array) to the
                     # node in the graph is should be fed to.
-                    feed_dict = {train_data_node: batch_data,
-                                 train_labels_node: batch_labels}
+                    feed_dict = {learner.train_data_node: batch_data,
+                                 learner.train_labels_node: batch_labels}
 
                     if step % RECORDING_STEP == 0:
 
                         summary_str, _, l, lr, predictions = s.run(
-                            [summary_op, optimizer, loss, learning_rate, train_prediction],
+                            [summary_op, learner.optimizer, learner.loss, learner.learning_rate,
+                             learner.train_prediction],
                             feed_dict=feed_dict)
                         # summary_str = s.run(summary_op, feed_dict=feed_dict)
                         summary_writer.add_summary(summary_str, step)
@@ -190,11 +129,11 @@ def main(argv=None):  # pylint: disable=unused-argument
                     else:
                         # Run the graph and fetch some of the nodes.
                         _, l, lr, predictions = s.run(
-                            [optimizer, loss, learning_rate, train_prediction],
+                            [learner.optimizer, learner.loss, learner.learning_rate, learner.train_prediction],
                             feed_dict=feed_dict)
 
                 # Save the variables to disk.
-                save_path = saver.save(s, FLAGS.train_dir + "/model.ckpt")
+                save_path = learner.saver.save(s, FLAGS.train_dir + "/model.ckpt")
                 print("Model saved in file: %s" % save_path)
 
         print("Running prediction on training set")
@@ -202,9 +141,9 @@ def main(argv=None):  # pylint: disable=unused-argument
         if not os.path.isdir(prediction_training_dir):
             os.mkdir(prediction_training_dir)
         for i in range(1, TRAINING_SIZE + 1):
-            pimg = get_prediction_with_groundtruth(train_data_filename, i, cNNModel, s)
+            pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, s)
             Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
-            oimg = get_prediction_with_overlay(train_data_filename, i, cNNModel, s)
+            oimg = get_prediction_with_overlay(train_data_filename, i, learner.cNNModel, s)
             oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
 
 
