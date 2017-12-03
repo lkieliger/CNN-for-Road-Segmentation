@@ -93,7 +93,7 @@ def main(argv=None):  # pylint: disable=unused-argument
             training_indices = range(train_size)
 
             for iepoch in range(num_epochs):
-
+                print("Running epoch {}".format(iepoch))
                 # Permute training indices
                 perm_indices = numpy.random.permutation(training_indices)
 

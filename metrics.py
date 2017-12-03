@@ -1,4 +1,5 @@
 import numpy
+import tensorflow as tf
 
 def error_rate(predictions, labels):
     """
@@ -13,3 +14,9 @@ def error_rate(predictions, labels):
         100.0 *
         numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1)) /
         predictions.shape[0])
+
+def accuracy(labels, predictions):
+    pass
+
+def f1_score():
+    pass

@@ -44,6 +44,8 @@ def get_prediction(img, convolutional_model: Model, tensorflow_session: tf.Sessi
     """
     Get the prediction for a given input image
     
+    :param convolutional_model: The convolutional neural network model
+    :param tensorflow_session: The tensorflow session
     :param img: The image for which to generate the prediction
     
     :return: The prediction
@@ -63,6 +65,8 @@ def get_prediction_with_groundtruth(filename, image_idx, convolutional_model: Mo
     
     :param filename: The path to the input image folder
     :param image_idx: The index of the image amongst the dataset
+    :param convolutional_model: The convolutional neural network model
+    :param tensorflow_session: The tensorflow session
     
     :return: The concatenation of the generated prediction and groundtruth image
     """
@@ -83,6 +87,8 @@ def get_prediction_with_overlay(filename, image_idx, convolutional_model: Model,
     
     :param filename: The path to the input image folder
     :param image_idx: The index of the image amongst the dataset
+    :param convolutional_model: The convolutional neural network model
+    :param tensorflow_session: The tensorflow session
     
     :return: The original image with its predictions overlaid
     """

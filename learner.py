@@ -9,16 +9,30 @@ class Learner:
         self.train_data = train_data
         self.train_size = train_size
 
+        self.train_data_node = None
+        self.train_labels_node = None
+        self.train_all_data_node = None
+        self.regularizers = None
+        self.batch = None
+        self.learning_rate = None
+        self.optimizer = None
+        self.logits = None
+        self.loss = None
+        self.feed_dictionnary = None
+
+        self._init_learner()
+
+    def _init_learner(self):
         self.cNNModel = Model()
 
-        self.init_nodes()
-        self.init_logits()
-        self.init_regularizer()
-        self.init_loss()
-        self.init_learning_rate()
-        self.init_optimizer()
+        self._init_nodes()
+        self._init_logits()
+        self._init_regularizer()
+        self._init_loss()
+        self._init_learning_rate()
+        self._init_optimizer()
 
-        self.init_params_summaries()
+        self._init_params_summaries()
 
         # Predictions for the minibatch, validation set and test set.
         self.train_prediction = tf.nn.softmax(self.logits)
@@ -29,7 +43,7 @@ class Learner:
         # Add ops to save and restore all the variables.
         self.saver = tf.train.Saver()
 
-    def init_nodes(self):
+    def _init_nodes(self):
         # This is where training samples and labels are fed to the graph.
         # These placeholder nodes will be fed a batch of training data at each
         # training step using the {feed_dict} argument to the Run() call below.
@@ -40,12 +54,12 @@ class Learner:
                                                 shape=(BATCH_SIZE, NUM_LABELS))
         self.train_all_data_node = tf.constant(self.train_data)
 
-    def init_regularizer(self):
+    def _init_regularizer(self):
         # L2 regularization for the fully connected parameters.
         self.regularizers = (tf.nn.l2_loss(self.cNNModel.fc1_weights) + tf.nn.l2_loss(self.cNNModel.fc1_biases) +
                              tf.nn.l2_loss(self.cNNModel.fc2_weights) + tf.nn.l2_loss(self.cNNModel.fc2_biases))
 
-    def init_learning_rate(self):
+    def _init_learning_rate(self):
         # Optimizer: set up a variable that's incremented once per batch and
         # controls the learning rate decay.
         self.batch = tf.Variable(0)
@@ -59,17 +73,17 @@ class Learner:
             staircase=True)
         tf.summary.scalar('learning_rate', self.learning_rate)
 
-    def init_optimizer(self):
+    def _init_optimizer(self):
         # Use simple momentum for the optimization.
         self.optimizer = tf.train.MomentumOptimizer(self.learning_rate,
                                                     0.0).minimize(self.loss,
                                                                   global_step=self.batch)
 
-    def init_logits(self):
+    def _init_logits(self):
         # Training computation: logits + cross-entropy loss.
         self.logits = self.cNNModel.model_func()(self.train_data_node, True)  # BATCH_SIZE*NUM_LABELS
 
-    def init_loss(self):
+    def _init_loss(self):
         # print 'logits = ' + str(logits.get_shape()) + ' train_labels_node = ' + str(train_labels_node.get_shape())
         self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
             logits=self.logits, labels=self.train_labels_node))
@@ -79,7 +93,7 @@ class Learner:
 
         tf.summary.scalar('loss', self.loss)
 
-    def init_params_summaries(self):
+    def _init_params_summaries(self):
         all_params_node = [self.cNNModel.conv1_weights, self.cNNModel.conv1_biases,
                            self.cNNModel.conv2_weights, self.cNNModel.conv2_biases,
                            self.cNNModel.fc1_weights, self.cNNModel.fc1_biases,
