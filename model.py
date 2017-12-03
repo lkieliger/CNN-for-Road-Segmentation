@@ -90,9 +90,11 @@ class Model:
             reshape = tf.reshape(
                 pool2,
                 [pool_shape[0], pool_shape[1] * pool_shape[2] * pool_shape[3]])
+
             # Fully connected layer. Note that the '+' operation automatically
             # broadcasts the biases.
             hidden = tf.nn.relu(tf.matmul(reshape, self.fc1_weights) + self.fc1_biases)
+
             # Add a 50% dropout during training only. Dropout also scales
             # activations such that no rescaling is needed at evaluation time.
             # if train:

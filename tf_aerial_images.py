@@ -56,6 +56,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     train_labels = train_labels[new_indices]
 
     train_size = train_labels.shape[0]
+    print(train_size)
 
     c0 = 0
     c1 = 0
@@ -69,22 +70,24 @@ def main(argv=None):  # pylint: disable=unused-argument
     learner = Learner(train_data, train_size)
 
     # Create a local session to run this computation.
-    with tf.Session() as tensorflor_session:
+    with tf.Session() as tensorflow_session:
 
         if RESTORE_MODEL:
             # Restore variables from disk.
-            learner.saver.restore(tensorflor_session, FLAGS.train_dir + "/model.ckpt")
+            learner.saver.restore(tensorflow_session, FLAGS.train_dir + "/model.ckpt")
             print("Model restored.")
 
         else:
             # Run all the initializers to prepare the trainable parameters.
             init = tf.global_variables_initializer()
-            tensorflor_session.run(init)
+            init_loc = tf.local_variables_initializer()
+            tensorflow_session.run(init)
+            tensorflow_session.run(init_loc)
             # tf.initialize_all_variables().run()
 
             # Build the summary operation based on the TF collection of Summaries.
             summary_op = tf.summary.merge_all()
-            summary_writer = tf.summary.FileWriter(FLAGS.train_dir, graph_def=tensorflor_session.graph_def)
+            summary_writer = tf.summary.FileWriter(FLAGS.train_dir, graph_def=tensorflow_session.graph_def)
 
             print('Initialized!')
             # Loop through training steps.
@@ -93,6 +96,9 @@ def main(argv=None):  # pylint: disable=unused-argument
             training_indices = range(train_size)
 
             for iepoch in range(num_epochs):
+                # Reset local variables, needed for metrics
+                tensorflow_session.run(init_loc)
+
                 print("Running epoch {}".format(iepoch))
                 # Permute training indices
                 perm_indices = numpy.random.permutation(training_indices)
@@ -108,13 +114,13 @@ def main(argv=None):  # pylint: disable=unused-argument
                     batch_labels = train_labels[batch_indices]
                     # This dictionary maps the batch data (as a numpy array) to the
                     # node in the graph is should be fed to.
-                    learner.update_feed_dictionnary(batch_data, batch_labels)
+                    learner.update_feed_dictionary(batch_data, batch_labels)
 
                     if step % RECORDING_STEP == 0:
 
-                        summary_str, _, l, lr, predictions = tensorflor_session.run(
-                            [summary_op] + learner.get_run_ops(),
-                            feed_dict=learner.feed_dictionnary)
+                        summary_str, _, l, lr, predictions, _ = tensorflow_session.run(
+                            [summary_op] + learner.get_run_ops() + learner.get_metric_update_ops(),
+                            feed_dict=learner.feed_dictionary)
                         # summary_str = s.run(summary_op, feed_dict=feed_dict)
                         summary_writer.add_summary(summary_str, step)
                         summary_writer.flush()
@@ -125,19 +131,21 @@ def main(argv=None):  # pylint: disable=unused-argument
                         print('Minibatch loss: %.3f, learning rate: %.6f' % (l, lr))
                         print('Minibatch error: %.1f%%' % error_rate(predictions,
                                                                      batch_labels))
-
                         sys.stdout.flush()
                     else:
                         # Run the graph and fetch some of the nodes.
-                        _, l, lr, predictions = tensorflor_session.run(
-                            learner.get_run_ops(),
+                        _, l, lr, predictions, _= tensorflow_session.run(
+                            learner.get_run_ops() + learner.get_metric_update_ops(),
                             feed_dict=learner.get_feed_dictionnary())
 
+
+                print("Learner accuracy at epoch {}: {:.2%}".format(iepoch, learner.acc.eval()))
+
                 # Save the variables to disk.
-                save_path = learner.saver.save(tensorflor_session, FLAGS.train_dir + "/model.ckpt")
+                save_path = learner.saver.save(tensorflow_session, FLAGS.train_dir + "/model.ckpt")
                 print("Model saved in file: %s" % save_path)
 
-        output_training_set_results(tensorflor_session, learner, train_data_filename)
+        output_training_set_results(tensorflow_session, learner, train_data_filename)
 
 
 

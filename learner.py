@@ -18,7 +18,9 @@ class Learner:
         self.optimizer = None
         self.logits = None
         self.loss = None
-        self.feed_dictionnary = None
+        self.acc= None
+        self.acc_op= None
+        self.feed_dictionary = None
 
         self._init_learner()
 
@@ -27,12 +29,6 @@ class Learner:
 
         self._init_nodes()
         self._init_logits()
-        self._init_regularizer()
-        self._init_loss()
-        self._init_learning_rate()
-        self._init_optimizer()
-
-        self._init_params_summaries()
 
         # Predictions for the minibatch, validation set and test set.
         self.train_prediction = tf.nn.softmax(self.logits)
@@ -40,8 +36,17 @@ class Learner:
         # We'll compute them only once in a while by calling their {eval()} method.
         self.train_all_prediction = tf.nn.softmax(self.cNNModel.model_func()(self.train_all_data_node))
 
+        self._init_regularizer()
+        self._init_loss()
+        self._init_learning_rate()
+        self._init_optimizer()
+        self._init_metrics()
+
+        self._init_params_summaries()
+
         # Add ops to save and restore all the variables.
         self.saver = tf.train.Saver()
+
 
     def _init_nodes(self):
         # This is where training samples and labels are fed to the graph.
@@ -93,6 +98,12 @@ class Learner:
 
         tf.summary.scalar('loss', self.loss)
 
+    def _init_metrics(self):
+        self.acc, self.acc_op = tf.metrics.accuracy(
+            labels=self.train_labels_node,
+            predictions=tf.one_hot(tf.argmax(self.train_prediction, 1), 2)
+        )
+
     def _init_params_summaries(self):
         all_params_node = [self.cNNModel.conv1_weights, self.cNNModel.conv1_biases,
                            self.cNNModel.conv2_weights, self.cNNModel.conv2_biases,
@@ -112,14 +123,20 @@ class Learner:
             all_grad_norms_node.append(norm_grad_i)
             tf.summary.scalar(all_params_names[i], norm_grad_i)
 
-    def update_feed_dictionnary(self, batch_data, batch_labels):
-        self.feed_dictionnary = {
+    def update_feed_dictionary(self, batch_data, batch_labels):
+        self.feed_dictionary = {
             self.train_data_node: batch_data,
             self.train_labels_node: batch_labels
         }
 
     def get_feed_dictionnary(self):
-        return self.feed_dictionnary
+        return self.feed_dictionary
 
     def get_run_ops(self):
         return [self.optimizer, self.loss, self.learning_rate, self.train_prediction]
+
+    def get_metric_update_ops(self):
+        return [self.acc_op]
+
+    def get_metric_ops(self):
+        return [self.acc]
