@@ -12,6 +12,7 @@ class ConfigLogger:
         self.acc_train = self.prec_train = self.rec_train = self.f1_train = 0
         self.acc_validation = self.prec_validation = self.rec_validation = self.f1_validation = 0
         self.acc_test = self.pre_test = self.rec_test = self.f1_test = 0
+        self.model_description = ''
 
     def set_train_score(self, acc, pre, rec, f1):
         self.acc_train = acc
@@ -30,6 +31,9 @@ class ConfigLogger:
         self.pre_test = pre
         self.rec_test = rec
         self.f1_test = f1
+
+    def describe_model(self, description):
+        self.model_description = description
         
     def save(self):
 
@@ -39,6 +43,8 @@ class ConfigLogger:
                 '=================', ret,
                 '| LOG {}|'.format(self.timestamp), ret,
                 '=================', ret, ret,
+                'Model:', ret,
+                self.model_description, ret, ret,
                 'Pix depth: ', spacer, str(PIXEL_DEPTH), ret,
                 'Num img: ', spacer, str(NUM_IMAGES), ret,
                 'Train size: ', spacer, str(TRAINING_SIZE), ret,

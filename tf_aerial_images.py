@@ -83,6 +83,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     accuracy_data_training = []
     accuracy_data_validation = []
     logger = ConfigLogger()
+    logger.describe_model(learner.cNNModel.get_description())
 
     # Create a local session to run this computation.
     with tf.Session() as tensorflow_session:

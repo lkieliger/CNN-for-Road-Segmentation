@@ -3,7 +3,7 @@ import numpy
 import tensorflow as tf
 
 from helpers.image_helpers import make_img_overlay, img_crop, concatenate_images, label_to_img
-from model import Model
+from model import BaselineModel
 from program_constants import *
 
 
@@ -40,7 +40,7 @@ def print_predictions(predictions, labels):
     print(str(max_labels) + ' ' + str(max_predictions))
 
 
-def get_prediction(img, convolutional_model: Model, tensorflow_session: tf.Session):
+def get_prediction(img, convolutional_model: BaselineModel, tensorflow_session: tf.Session):
     """
     Get the prediction for a given input image
     
@@ -59,7 +59,7 @@ def get_prediction(img, convolutional_model: Model, tensorflow_session: tf.Sessi
     return img_prediction
 
 
-def get_prediction_with_groundtruth(filename, image_idx, convolutional_model: Model, tensorflow_session: tf.Session):
+def get_prediction_with_groundtruth(filename, image_idx, convolutional_model: BaselineModel, tensorflow_session: tf.Session):
     """
     Get a concatenation of the prediction and groundtruth for a given input file
     
@@ -81,7 +81,7 @@ def get_prediction_with_groundtruth(filename, image_idx, convolutional_model: Mo
     return cimg
 
 
-def get_prediction_with_overlay(filename, image_idx, convolutional_model: Model, tensorflow_session: tf.Session):
+def get_prediction_with_overlay(filename, image_idx, convolutional_model: BaselineModel, tensorflow_session: tf.Session):
     """
     Get the original image with the predictions overlaid on top of it
     

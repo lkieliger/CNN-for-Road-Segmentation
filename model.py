@@ -25,9 +25,16 @@ def max_pool_2x2(x):
 def relu(x):
     return tf.nn.relu(x)
 
+class AbstractModel:
+    def __init__(self, description):
+        self.description = description
 
-class Model:
+    def get_description(self):
+        return self.description
+
+class BaselineModel(AbstractModel):
     def __init__(self):
+        AbstractModel.__init__(self, "Conv[5,5,3,32] ReLU Pool[2] Conv[5,5,32,64] ReLu Pool[2] Full[512] ReLu Full[512]")
         self._initialize_model_params()
 
     def _initialize_model_params(self):

@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from model import Model
+from model import BaselineModel
 from program_constants import *
 
 class Learner:
@@ -10,7 +10,7 @@ class Learner:
         self._init_learner()
 
     def _init_learner(self):
-        self.cNNModel = Model()
+        self.cNNModel = BaselineModel()
 
         self._init_nodes()
         self._init_predictions()
