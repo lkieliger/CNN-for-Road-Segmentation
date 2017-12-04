@@ -196,13 +196,14 @@ def main(argv=None):  # pylint: disable=unused-argument
                 save_path = learner.saver.save(tensorflow_session, FLAGS.train_dir + "/model.ckpt")
                 print("\t Model saved in file: %s" % save_path)
 
+        plot_accuracy([accuracy_data_training, accuracy_data_validation], logger.get_timestamp())
+        logger.save()
+
         print("=============================================================")
         print("=============================================================")
         print("")
-        output_training_set_results(tensorflow_session, learner, train_data_filename)
+        #output_training_set_results(tensorflow_session, learner, train_data_filename)
 
-    plot_accuracy([accuracy_data_training, accuracy_data_validation], logger.get_timestamp())
-    logger.save()
 
 
 if __name__ == '__main__':

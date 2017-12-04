@@ -39,7 +39,7 @@ def print_predictions(predictions, labels):
     max_predictions = numpy.argmax(predictions, 1)
     print(str(max_labels) + ' ' + str(max_predictions))
 
-
+# TODO: compute it by batch
 def get_prediction(img, convolutional_model: BaselineModel, tensorflow_session: tf.Session):
     """
     Get the prediction for a given input image
