@@ -1,13 +1,14 @@
 import sys
 
+from config_logger import ConfigLogger
 from helpers.image_helpers import *
 from helpers.prediction_helpers import *
 from helpers.data_helpers import *
 from learner import Learner
 from metrics import *
 from model import *
-from program_constants import *
 from plots import *
+from program_constants import *
 
 tf.app.flags.DEFINE_string('train_dir', '/tmp/mnist',
                            """Directory where to write event logs """
@@ -81,6 +82,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     accuracy_data_training = []
     accuracy_data_validation = []
+    logger = ConfigLogger()
 
     # Create a local session to run this computation.
     with tf.Session() as tensorflow_session:
@@ -169,6 +171,8 @@ def main(argv=None):  # pylint: disable=unused-argument
                 print("\t Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}, F1: {:.2%}".format(acc, pre, rec, f1s))
                 print("\t TP: {}, TN: {}, FP: {}, FN: {} \n".format(tp, tn, fp, fn))
 
+                logger.set_train_score(acc, pre, rec, f1s)
+
                 accuracy_data_training.append(acc)
 
                 """
@@ -183,6 +187,8 @@ def main(argv=None):  # pylint: disable=unused-argument
                 print("\t Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}, F1: {:.2%}".format(acc, pre, rec, f1s))
                 print("\t TP: {}, TN: {}, FP: {}, FN: {} \n".format(tp, tn, fp, fn))
 
+                logger.set_validation_score(acc, pre, rec, f1s)
+
                 accuracy_data_validation.append(acc)
 
                 # Save the variables to disk.
@@ -194,7 +200,9 @@ def main(argv=None):  # pylint: disable=unused-argument
         print("")
         output_training_set_results(tensorflow_session, learner, train_data_filename)
 
-    plot_accuracy([accuracy_data_training, accuracy_data_validation])
+    plot_accuracy([accuracy_data_training, accuracy_data_validation], logger.get_timestamp())
+    logger.save()
+
 
 if __name__ == '__main__':
     tf.app.run()
