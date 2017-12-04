@@ -73,9 +73,14 @@ def main(argv=None):  # pylint: disable=unused-argument
     # Split data
     data_train, data_validation, data_test, labels_train, labels_validation, labels_test = split_data(data, labels)
 
+    print("Training data shape: {}".format(data_train.shape))
+    print("Validation data shape: {}".format(data_validation.shape))
+    print("Test data shape: {}".format(data_test.shape))
+
     learner = Learner(data_train.shape[0])
 
-    accuracy_data = []
+    accuracy_data_training = []
+    accuracy_data_validation = []
 
     # Create a local session to run this computation.
     with tf.Session() as tensorflow_session:
@@ -102,19 +107,24 @@ def main(argv=None):  # pylint: disable=unused-argument
             print('Total number of iterations = ' + str(int(num_epochs * data_train.shape[0] / BATCH_SIZE)))
 
             training_indices = range(data_train.shape[0])
+            validation_indices = range(data_validation.shape[0])
 
             for iepoch in range(num_epochs):
                 # Reset local variables, needed for metrics
                 tensorflow_session.run(init_loc)
-
-                print("Running epoch {}".format(iepoch))
+                print("")
+                print("=============================================================")
+                print(" RUNNING EPOCH {}                                          ".format(iepoch))
+                print("=============================================================")
                 # Permute training indices
-                perm_indices = numpy.random.permutation(training_indices)
+                perm_indices_train = numpy.random.permutation(training_indices)
+                perm_indices_validation = numpy.random.permutation(validation_indices)
 
+                # Train on whole dataset, batch by batch
                 for step in range(int(data_train.shape[0] / BATCH_SIZE)):
 
                     offset = (step * BATCH_SIZE) % (data_train.shape[0] - BATCH_SIZE)
-                    batch_indices = perm_indices[offset:(offset + BATCH_SIZE)]
+                    batch_indices = perm_indices_train[offset:(offset + BATCH_SIZE)]
 
                     # Compute the offset of the current minibatch in the data.
                     # Note that we could use better randomization across epochs.
@@ -124,49 +134,67 @@ def main(argv=None):  # pylint: disable=unused-argument
                     # node in the graph is should be fed to.
                     learner.update_feed_dictionary(batch_data, batch_labels)
 
-                    if step % RECORDING_STEP == 0:
+                    # Run the graph and fetch some of the nodes.
+                    _, l, lr, predictions, _, _, _, _= tensorflow_session.run(
+                        learner.get_train_ops() + learner.get_train_metric_update_ops(),
+                        feed_dict=learner.get_feed_dictionnary())
 
-                        summary_str, _, l, lr, predictions, _, _, _, _ = tensorflow_session.run(
-                            [summary_op] + learner.get_run_ops() + learner.get_metric_update_ops(),
-                            feed_dict=learner.feed_dictionary)
-                        # summary_str = s.run(summary_op, feed_dict=feed_dict)
-                        summary_writer.add_summary(summary_str, step)
-                        summary_writer.flush()
+                    #print_predictions(predictions, batch_labels)
 
-                        #print_predictions(predictions, batch_labels)
+                # Assess performance by running on validation dataset, batch by batch
+                for step in range(int(data_validation.shape[0] / BATCH_SIZE)):
+                    offset = (step * BATCH_SIZE) % (data_validation.shape[0] - BATCH_SIZE)
+                    batch_indices = perm_indices_validation[offset:(offset + BATCH_SIZE)]
 
-                        print('Epoch %.2f' % (float(step) * BATCH_SIZE / data_train.shape[0]))
-                        print('Minibatch loss: %.3f, learning rate: %.6f' % (l, lr))
-                        print('Minibatch error: %.1f%%' % error_rate(predictions,
-                                                                     batch_labels))
-                        sys.stdout.flush()
-                    else:
-                        # Run the graph and fetch some of the nodes.
-                        _, l, lr, predictions, _, _, _, _= tensorflow_session.run(
-                            learner.get_run_ops() + learner.get_metric_update_ops(),
-                            feed_dict=learner.get_feed_dictionnary())
+                    batch_data = data_validation[batch_indices, :, :, :]
+                    batch_labels = labels_validation[batch_indices]
 
-                        #print_predictions(predictions, batch_labels)
+                    learner.update_feed_dictionary(batch_data, batch_labels)
+
+                    # Run the graph and fetch some of the nodes.
+                    predictions, _, _, _, _ = tensorflow_session.run(
+                        learner.get_validation_ops() + learner.get_validation_metric_update_ops(),
+                        feed_dict=learner.get_feed_dictionnary())
 
 
-                tp, fp, tn, fn = tensorflow_session.run(learner.get_metric_ops())
+                """
+                TRAINING REPORT
+                """
+                tp, fp, tn, fn = tensorflow_session.run(learner.get_train_metric_ops())
                 acc = accuracy(tp, fp, tn, fn)
                 pre = precision(tp, fp)
                 rec = recall(tp, fn)
                 f1s = f1_score(tp, fp, fn)
+                print("\t [ TRAINING REPORT ]")
+                print("\t Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}, F1: {:.2%}".format(acc, pre, rec, f1s))
+                print("\t TP: {}, TN: {}, FP: {}, FN: {} \n".format(tp, tn, fp, fn))
 
-                print("Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}, F1: {:.2%}".format(acc, pre, rec, f1s))
-                print("TP: {}, TN: {}, FP: {}, FN: {}".format(tp, tn, fp, fn))
+                accuracy_data_training.append(acc)
 
-                accuracy_data.append(acc)
+                """
+                VALIDATION REPORT
+                """
+                tp, fp, tn, fn = tensorflow_session.run(learner.get_validation_metric_ops())
+                acc = accuracy(tp, fp, tn, fn)
+                pre = precision(tp, fp)
+                rec = recall(tp, fn)
+                f1s = f1_score(tp, fp, fn)
+                print("\t [ VALIDATION REPORT ]")
+                print("\t Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}, F1: {:.2%}".format(acc, pre, rec, f1s))
+                print("\t TP: {}, TN: {}, FP: {}, FN: {} \n".format(tp, tn, fp, fn))
+
+                accuracy_data_validation.append(acc)
 
                 # Save the variables to disk.
                 save_path = learner.saver.save(tensorflow_session, FLAGS.train_dir + "/model.ckpt")
-                print("Model saved in file: %s" % save_path)
+                print("\t Model saved in file: %s" % save_path)
 
+        print("=============================================================")
+        print("=============================================================")
+        print("")
         output_training_set_results(tensorflow_session, learner, train_data_filename)
 
-    plot_accuracy([accuracy_data])
+    plot_accuracy([accuracy_data_training, accuracy_data_validation])
 
 if __name__ == '__main__':
     tf.app.run()

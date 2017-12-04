@@ -13,10 +13,7 @@ class Learner:
         self.cNNModel = Model()
 
         self._init_nodes()
-        self._init_logits()
-
-        # Predictions for the minibatch, validation set and test set.
-        self.predictions = tf.nn.softmax(self.logits)
+        self._init_predictions()
 
         # We'll compute them only once in a while by calling their {eval()} method.
         #self.train_all_prediction = tf.nn.softmax(self.cNNModel.model_func()(self.train_all_data_node))
@@ -66,12 +63,16 @@ class Learner:
     def _init_optimizer(self):
         # Use simple momentum for the optimization.
         self.optimizer = tf.train.MomentumOptimizer(self.learning_rate,
-                                                    0.0).minimize(self.loss,
-                                                                  global_step=self.batch)
+                                                    0.0).minimize(self.loss, global_step=self.batch)
 
-    def _init_logits(self):
-        # Training computation: logits + cross-entropy loss.
+    def _init_predictions(self):
         self.logits = self.cNNModel.model_func()(self.data_node, True)  # BATCH_SIZE*NUM_LABELS
+        self.logits_validation = self.cNNModel.model_func()(self.data_node, False)  # BATCH_SIZE*NUM_LABELS
+
+        # Predictions for the minibatch, validation set and test set.
+        self.train_predictions = tf.nn.softmax(self.logits)
+        self.validation_predictions = tf.nn.softmax(self.logits_validation)
+
 
     def _init_loss(self):
         # print 'logits = ' + str(logits.get_shape()) + ' train_labels_node = ' + str(train_labels_node.get_shape())
@@ -84,28 +85,64 @@ class Learner:
         tf.summary.scalar('loss', self.loss)
 
     def _init_metrics(self):
+        l_train = tf.argmax(self.labels_node, 1)
+        p_train = tf.argmax(self.train_predictions, 1)
 
-        l = tf.argmax(self.labels_node, 1)
-        p = tf.argmax(self.predictions, 1)
+        l_validation = tf.argmax(self.labels_node, 1)
+        p_validation = tf.argmax(self.validation_predictions, 1)
 
-        self.true_pos, self.true_pos_op = tf.contrib.metrics.streaming_true_positives(
-            labels=l,
-            predictions=p
+        """
+        TRAINING METRICS
+        """
+        self.true_train_pos, self.true_train_pos_op = tf.contrib.metrics.streaming_true_positives(
+            labels=l_train,
+            predictions=p_train,
+            name="train"
         )
 
-        self.false_pos, self.false_pos_op = tf.contrib.metrics.streaming_false_positives(
-            labels=l,
-            predictions=p
+        self.false_train_pos, self.false_train_pos_op = tf.contrib.metrics.streaming_false_positives(
+            labels=l_train,
+            predictions=p_train,
+            name="train"
         )
 
-        self.true_neg, self.true_neg_op = tf.contrib.metrics.streaming_true_negatives(
-            labels=l,
-            predictions=p
+        self.true_train_neg, self.true_train_neg_op = tf.contrib.metrics.streaming_true_negatives(
+            labels=l_train,
+            predictions=p_train,
+            name="train"
         )
 
-        self.false_neg, self.false_neg_op = tf.contrib.metrics.streaming_false_negatives(
-            labels=l,
-            predictions=p,
+        self.false_train_neg, self.false_train_neg_op = tf.contrib.metrics.streaming_false_negatives(
+            labels=l_train,
+            predictions=p_train,
+            name="train"
+        )
+
+        """
+        VALIDATION METRICS
+        """
+        self.true_validation_pos, self.true_validation_pos_op = tf.contrib.metrics.streaming_true_positives(
+            labels=l_validation,
+            predictions=p_validation,
+            name="validation"
+        )
+
+        self.false_validation_pos, self.false_validation_pos_op = tf.contrib.metrics.streaming_false_positives(
+            labels=l_validation,
+            predictions=p_validation,
+            name="validation"
+        )
+
+        self.true_validation_neg, self.true_validation_neg_op = tf.contrib.metrics.streaming_true_negatives(
+            labels=l_validation,
+            predictions=p_validation,
+            name="validation"
+        )
+
+        self.false_validation_neg, self.false_validation_neg_op = tf.contrib.metrics.streaming_false_negatives(
+            labels=l_validation,
+            predictions=p_validation,
+            name="validation"
         )
 
     def _init_params_summaries(self):
@@ -136,11 +173,24 @@ class Learner:
     def get_feed_dictionnary(self):
         return self.feed_dictionary
 
-    def get_run_ops(self):
-        return [self.optimizer, self.loss, self.learning_rate, self.predictions]
+    def get_train_ops(self):
+        return [self.optimizer, self.loss, self.learning_rate, self.train_predictions]
 
-    def get_metric_update_ops(self):
-        return [self.true_pos_op, self.false_pos_op, self.true_neg_op, self.false_neg_op]
+    def get_train_metric_ops(self):
+        return [self.true_train_pos, self.false_train_pos, 
+                self.true_train_neg, self.false_train_neg]
 
-    def get_metric_ops(self):
-        return [self.true_pos, self.false_pos, self.true_neg, self.false_neg]
+    def get_train_metric_update_ops(self):
+        return [self.true_train_pos_op, self.false_train_pos_op, 
+                self.true_train_neg_op, self.false_train_neg_op]
+
+    def get_validation_ops(self):
+        return [self.validation_predictions]
+
+    def get_validation_metric_ops(self):
+        return [self.true_validation_pos, self.false_validation_pos, 
+                self.true_validation_neg, self.false_validation_neg]
+
+    def get_validation_metric_update_ops(self):
+        return [self.true_validation_pos_op, self.false_validation_pos_op, 
+                self.true_validation_neg_op, self.false_validation_neg_op]
