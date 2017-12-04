@@ -51,7 +51,7 @@ class BaselineModel(AbstractModel):
         self.conv2_biases = bias_variable([64])
 
         # Third layer FULLY CONNECTED
-        self.fc1_weights = weight_variable([int(IMG_PATCH_SIZE / 4 * IMG_PATCH_SIZE / 4 * 64), 512])
+        self.fc1_weights = weight_variable([int(EFFECTIVE_INPUT_SIZE / 4 * EFFECTIVE_INPUT_SIZE / 4 * 64), 512])
         self.fc1_biases = bias_variable([512])
 
         # Fourth layer FULLY CONNECTED
@@ -118,3 +118,7 @@ class BaselineModel(AbstractModel):
             return out
 
         return model
+
+class CustomModel(AbstractModel):
+    def __init__(self):
+        AbstractModel.__init__(self, "")

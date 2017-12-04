@@ -36,7 +36,7 @@ class Learner:
         # training step using the {feed_dict} argument to the Run() call below.
         self.data_node = tf.placeholder(
             tf.float32,
-            shape=(BATCH_SIZE, IMG_PATCH_SIZE, IMG_PATCH_SIZE, NUM_CHANNELS))
+            shape=(BATCH_SIZE, EFFECTIVE_INPUT_SIZE, EFFECTIVE_INPUT_SIZE, NUM_CHANNELS))
         self.labels_node = tf.placeholder(tf.float32,
                                           shape=(BATCH_SIZE, NUM_LABELS))
         #self.train_all_data_node = tf.constant(self.train_data)
@@ -62,8 +62,7 @@ class Learner:
 
     def _init_optimizer(self):
         # Use simple momentum for the optimization.
-        self.optimizer = tf.train.MomentumOptimizer(self.learning_rate,
-                                                    0.0).minimize(self.loss, global_step=self.batch)
+        self.optimizer = tf.train.AdamOptimizer(0.0001).minimize(self.loss, global_step=self.batch)
 
     def _init_predictions(self):
         self.logits = self.cNNModel.model_func()(self.data_node, True)  # BATCH_SIZE*NUM_LABELS

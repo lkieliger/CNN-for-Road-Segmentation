@@ -7,7 +7,7 @@ from helpers.image_helpers import img_crop
 from program_constants import *
 
 
-def extract_data(filename, num_images):
+def extract_data(filename, num_images, ):
     """
     Extract the images into a 4D tensor [image index, y, x, channels]
     Values are rescales from [0, 255] down to [-0.5, 0.5]
