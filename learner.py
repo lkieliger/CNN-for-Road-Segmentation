@@ -5,8 +5,7 @@ from program_constants import *
 
 class Learner:
 
-    def __init__(self, train_data, train_size):
-        self.train_data = train_data
+    def __init__(self, train_size):
         self.train_size = train_size
         self._init_learner()
 
@@ -17,10 +16,10 @@ class Learner:
         self._init_logits()
 
         # Predictions for the minibatch, validation set and test set.
-        self.train_prediction = tf.nn.softmax(self.logits)
+        self.predictions = tf.nn.softmax(self.logits)
 
         # We'll compute them only once in a while by calling their {eval()} method.
-        self.train_all_prediction = tf.nn.softmax(self.cNNModel.model_func()(self.train_all_data_node))
+        #self.train_all_prediction = tf.nn.softmax(self.cNNModel.model_func()(self.train_all_data_node))
 
         self._init_regularizer()
         self._init_loss()
@@ -38,12 +37,12 @@ class Learner:
         # This is where training samples and labels are fed to the graph.
         # These placeholder nodes will be fed a batch of training data at each
         # training step using the {feed_dict} argument to the Run() call below.
-        self.train_data_node = tf.placeholder(
+        self.data_node = tf.placeholder(
             tf.float32,
             shape=(BATCH_SIZE, IMG_PATCH_SIZE, IMG_PATCH_SIZE, NUM_CHANNELS))
-        self.train_labels_node = tf.placeholder(tf.float32,
-                                                shape=(BATCH_SIZE, NUM_LABELS))
-        self.train_all_data_node = tf.constant(self.train_data)
+        self.labels_node = tf.placeholder(tf.float32,
+                                          shape=(BATCH_SIZE, NUM_LABELS))
+        #self.train_all_data_node = tf.constant(self.train_data)
 
     def _init_regularizer(self):
         # L2 regularization for the fully connected parameters.
@@ -72,12 +71,12 @@ class Learner:
 
     def _init_logits(self):
         # Training computation: logits + cross-entropy loss.
-        self.logits = self.cNNModel.model_func()(self.train_data_node, True)  # BATCH_SIZE*NUM_LABELS
+        self.logits = self.cNNModel.model_func()(self.data_node, True)  # BATCH_SIZE*NUM_LABELS
 
     def _init_loss(self):
         # print 'logits = ' + str(logits.get_shape()) + ' train_labels_node = ' + str(train_labels_node.get_shape())
         self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-            logits=self.logits, labels=self.train_labels_node))
+            logits=self.logits, labels=self.labels_node))
 
         # Add the regularization term to the loss.
         self.loss += 5e-4 * self.regularizers
@@ -86,8 +85,8 @@ class Learner:
 
     def _init_metrics(self):
 
-        l = tf.argmax(self.train_labels_node, 1)
-        p = tf.argmax(self.train_prediction, 1)
+        l = tf.argmax(self.labels_node, 1)
+        p = tf.argmax(self.predictions, 1)
 
         self.true_pos, self.true_pos_op = tf.contrib.metrics.streaming_true_positives(
             labels=l,
@@ -130,15 +129,15 @@ class Learner:
 
     def update_feed_dictionary(self, batch_data, batch_labels):
         self.feed_dictionary = {
-            self.train_data_node: batch_data,
-            self.train_labels_node: batch_labels
+            self.data_node: batch_data,
+            self.labels_node: batch_labels
         }
 
     def get_feed_dictionnary(self):
         return self.feed_dictionary
 
     def get_run_ops(self):
-        return [self.optimizer, self.loss, self.learning_rate, self.train_prediction]
+        return [self.optimizer, self.loss, self.learning_rate, self.predictions]
 
     def get_metric_update_ops(self):
         return [self.true_pos_op, self.false_pos_op, self.true_neg_op, self.false_neg_op]

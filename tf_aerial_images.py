@@ -7,6 +7,7 @@ from learner import Learner
 from metrics import *
 from model import *
 from program_constants import *
+from plots import *
 
 tf.app.flags.DEFINE_string('train_dir', '/tmp/mnist',
                            """Directory where to write event logs """
@@ -31,43 +32,50 @@ def main(argv=None):  # pylint: disable=unused-argument
     train_labels_filename = data_dir + 'groundtruth/'
 
     # Extract it into numpy arrays.
-    train_data = extract_data(train_data_filename, TRAINING_SIZE)
-    train_labels = extract_labels(train_labels_filename, TRAINING_SIZE)
+    data = extract_data(train_data_filename, NUM_IMAGES)
+    labels = extract_labels(train_labels_filename, NUM_IMAGES)
 
     num_epochs = NUM_EPOCHS
 
     c0 = 0
     c1 = 0
-    for i in range(len(train_labels)):
-        if train_labels[i][0] == 1:
+    for i in range(len(labels)):
+        if labels[i][0] == 1:
             c0 = c0 + 1
         else:
             c1 = c1 + 1
     print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
 
+    # TODO: shuffle before balancing ?
     print('Balancing training data...')
     min_c = min(c0, c1)
-    idx0 = [i for i, j in enumerate(train_labels) if j[0] == 1]
-    idx1 = [i for i, j in enumerate(train_labels) if j[1] == 1]
+    idx0 = [i for i, j in enumerate(labels) if j[0] == 1]
+    idx1 = [i for i, j in enumerate(labels) if j[1] == 1]
     new_indices = idx0[0:min_c] + idx1[0:min_c]
     print(len(new_indices))
-    print(train_data.shape)
-    train_data = train_data[new_indices, :, :, :]
-    train_labels = train_labels[new_indices]
+    print(data.shape)
+    data = data[new_indices, :, :, :]
+    labels = labels[new_indices]
 
-    train_size = train_labels.shape[0]
-    print(train_size)
+    data_size = labels.shape[0]
+    print(data_size)
 
     c0 = 0
     c1 = 0
-    for i in range(len(train_labels)):
-        if train_labels[i][0] == 1:
+    for i in range(len(labels)):
+        if labels[i][0] == 1:
             c0 = c0 + 1
         else:
             c1 = c1 + 1
     print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
 
-    learner = Learner(train_data, train_size)
+
+    # Split data
+    data_train, data_validation, data_test, labels_train, labels_validation, labels_test = split_data(data, labels)
+
+    learner = Learner(data_train.shape[0])
+
+    accuracy_data = []
 
     # Create a local session to run this computation.
     with tf.Session() as tensorflow_session:
@@ -91,9 +99,9 @@ def main(argv=None):  # pylint: disable=unused-argument
 
             print('Initialized!')
             # Loop through training steps.
-            print('Total number of iterations = ' + str(int(num_epochs * train_size / BATCH_SIZE)))
+            print('Total number of iterations = ' + str(int(num_epochs * data_train.shape[0] / BATCH_SIZE)))
 
-            training_indices = range(train_size)
+            training_indices = range(data_train.shape[0])
 
             for iepoch in range(num_epochs):
                 # Reset local variables, needed for metrics
@@ -103,15 +111,15 @@ def main(argv=None):  # pylint: disable=unused-argument
                 # Permute training indices
                 perm_indices = numpy.random.permutation(training_indices)
 
-                for step in range(int(train_size / BATCH_SIZE)):
+                for step in range(int(data_train.shape[0] / BATCH_SIZE)):
 
-                    offset = (step * BATCH_SIZE) % (train_size - BATCH_SIZE)
+                    offset = (step * BATCH_SIZE) % (data_train.shape[0] - BATCH_SIZE)
                     batch_indices = perm_indices[offset:(offset + BATCH_SIZE)]
 
                     # Compute the offset of the current minibatch in the data.
                     # Note that we could use better randomization across epochs.
-                    batch_data = train_data[batch_indices, :, :, :]
-                    batch_labels = train_labels[batch_indices]
+                    batch_data = data_train[batch_indices, :, :, :]
+                    batch_labels = labels_train[batch_indices]
                     # This dictionary maps the batch data (as a numpy array) to the
                     # node in the graph is should be fed to.
                     learner.update_feed_dictionary(batch_data, batch_labels)
@@ -127,7 +135,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
                         #print_predictions(predictions, batch_labels)
 
-                        print('Epoch %.2f' % (float(step) * BATCH_SIZE / train_size))
+                        print('Epoch %.2f' % (float(step) * BATCH_SIZE / data_train.shape[0]))
                         print('Minibatch loss: %.3f, learning rate: %.6f' % (l, lr))
                         print('Minibatch error: %.1f%%' % error_rate(predictions,
                                                                      batch_labels))
@@ -150,6 +158,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                 print("Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}, F1: {:.2%}".format(acc, pre, rec, f1s))
                 print("TP: {}, TN: {}, FP: {}, FN: {}".format(tp, tn, fp, fn))
 
+                accuracy_data.append(acc)
 
                 # Save the variables to disk.
                 save_path = learner.saver.save(tensorflow_session, FLAGS.train_dir + "/model.ckpt")
@@ -157,7 +166,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
         output_training_set_results(tensorflow_session, learner, train_data_filename)
 
-
+    plot_accuracy([accuracy_data])
 
 if __name__ == '__main__':
     tf.app.run()

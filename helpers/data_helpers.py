@@ -94,3 +94,31 @@ def extract_labels(filename, num_images):
 
     # Convert to dense 1-hot representation.
     return labels.astype(numpy.float32)
+
+
+def split_data(data, labels):
+
+    data_size = data.shape[0]
+
+    if (NUM_IMAGES != TRAINING_SIZE + VALIDATION_SIZE + TEST_SIZE):
+        print("NUM_IMAGES: {} SPLIT COUNT: {}".format(NUM_IMAGES, TRAINING_SIZE + VALIDATION_SIZE + TEST_SIZE))
+        raise Exception("Dataset split count does not match total number of images!")
+
+    perm_indices = numpy.random.permutation(range(data_size))
+
+    train_bound = round(data_size * TRAINING_SIZE / NUM_IMAGES)
+    validation_bound = round(data_size * VALIDATION_SIZE / NUM_IMAGES)
+
+    train_indices = perm_indices[0: train_bound]
+    validation_indices = perm_indices[train_bound: train_bound + validation_bound]
+    test_indices = perm_indices[train_bound + validation_bound:]
+
+    data_train = data[train_indices, :, :, :]
+    data_validation = data[validation_indices, :, :, :]
+    data_test = data[test_indices, :, :, :]
+
+    labels_train = labels[train_indices]
+    labels_validation = labels[validation_indices]
+    labels_test = labels[test_indices]
+
+    return data_train, data_validation, data_test, labels_train, labels_validation, labels_test
