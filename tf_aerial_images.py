@@ -84,6 +84,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     accuracy_data_validation = []
     logger = ConfigLogger()
     logger.describe_model(learner.cNNModel.get_description())
+    weigths_1 = []
 
     # Create a local session to run this computation.
     with tf.Session() as tensorflow_session:
@@ -202,9 +203,12 @@ def main(argv=None):  # pylint: disable=unused-argument
         print("=============================================================")
         print("=============================================================")
         print("")
+        weigths_1 = tensorflow_session.run(learner.cNNModel.conv1_weights)
         #output_training_set_results(tensorflow_session, learner, train_data_filename)
 
-
+    #plot_accuracy([accuracy_data_training, accuracy_data_validation])
+    print(weigths_1)
+    plot_conv_weights(weigths_1)
 
 if __name__ == '__main__':
     tf.app.run()
