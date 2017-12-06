@@ -15,13 +15,13 @@ def generate_rotated_training_images(angle=45, use_delta=False, override_image=T
         delta = random.uniform(-5, 5) if use_delta else 0
         generate_rotated_image(input_path_truth + 'satImage_' + '{num:03d}'.format(num=i) + '.png',
                                input_path_truth + 'satImage_' + '{num:03d}'.format(num=i + num_files) + '.png',
-                               angle + delta)
+                               True, angle + delta)
         generate_rotated_image(input_path_images + 'satImage_' + '{num:03d}'.format(num=i) + '.png',
                                input_path_images + 'satImage_' + '{num:03d}'.format(num=i + num_files) + '.png',
-                               angle + delta)
+                               False, angle + delta)
 
 
-def generate_rotated_image(path_input, path_output, angle=45):
+def generate_rotated_image(path_input, path_output, use_grayscale, angle=45):
     img = cv2.imread(path_input)
     num_rows, num_cols = img.shape[:2]
     black_image = np.zeros((num_rows, num_cols, 3), np.uint8)
@@ -40,6 +40,9 @@ def generate_rotated_image(path_input, path_output, angle=45):
     img_rotation = cv2.warpAffine(tot, rotation_matrix, (num_cols_tot, num_rows_tot))
 
     crop_image = img_rotation[num_rows:num_rows * 2, num_cols:num_cols * 2]
+
+    if use_grayscale:
+        crop_image = cv2.cvtColor(crop_image, cv2.COLOR_BGR2GRAY)
 
     cv2.imwrite(path_output, crop_image)
 
