@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from model import BaselineModel
+from model import BaselineModel, CustomModel
 from program_constants import *
 
 class Learner:
@@ -24,7 +24,7 @@ class Learner:
         self._init_optimizer()
         self._init_metrics()
 
-        self._init_params_summaries()
+        #self._init_params_summaries()
 
         # Add ops to save and restore all the variables.
         self.saver = tf.train.Saver()
@@ -50,15 +50,6 @@ class Learner:
         # Optimizer: set up a variable that's incremented once per batch and
         # controls the learning rate decay.
         self.batch = tf.Variable(0)
-
-        # Decay once per epoch, using an exponential schedule starting at 0.01.
-        self.learning_rate = tf.train.exponential_decay(
-            0.01,  # Base learning rate.
-            self.batch * BATCH_SIZE,  # Current index into the dataset.
-            self.train_size,  # Decay step.
-            0.95,  # Decay rate.
-            staircase=True)
-        tf.summary.scalar('learning_rate', self.learning_rate)
 
     def _init_optimizer(self):
         # Use simple momentum for the optimization.
@@ -173,7 +164,7 @@ class Learner:
         return self.feed_dictionary
 
     def get_train_ops(self):
-        return [self.optimizer, self.loss, self.learning_rate, self.train_predictions]
+        return [self.optimizer, self.loss, self.train_predictions]
 
     def get_train_metric_ops(self):
         return [self.true_train_pos, self.false_train_pos, 

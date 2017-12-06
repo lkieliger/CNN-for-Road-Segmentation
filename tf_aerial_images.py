@@ -138,7 +138,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                     learner.update_feed_dictionary(batch_data, batch_labels)
 
                     # Run the graph and fetch some of the nodes.
-                    _, l, lr, predictions, _, _, _, _= tensorflow_session.run(
+                    _, l, predictions, _, _, _, _= tensorflow_session.run(
                         learner.get_train_ops() + learner.get_train_metric_update_ops(),
                         feed_dict=learner.get_feed_dictionnary())
 
