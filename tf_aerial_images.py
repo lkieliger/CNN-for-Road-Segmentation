@@ -209,9 +209,9 @@ def main(argv=None):  # pylint: disable=unused-argument
         weigths_1 = tensorflow_session.run(learner.cNNModel.conv1_weights)
         output_training_set_results(tensorflow_session, learner, train_data_filename)
 
-    #plot_accuracy([accuracy_data_training, accuracy_data_validation])
-    #print(weigths_1)
-    plot_conv_weights(weigths_1)
+        #plot_accuracy([accuracy_data_training, accuracy_data_validation])
+        #print(weigths_1)
+        plot_conv_weights(weigths_1, logger.get_timestamp())
 
 if __name__ == '__main__':
     tf.app.run()

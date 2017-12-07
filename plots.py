@@ -17,7 +17,7 @@ def plot_accuracy(data_list, timestamp, labels=None):
     plt.legend()
     plt.savefig("plots/accuracy_{}.png".format(timestamp))
 
-def plot_conv_weights(weights):
+def plot_conv_weights(weights, timestamp):
 
     num_filters = weights.shape[3]
     num_grids = int(np.ceil(np.sqrt(num_filters)))
@@ -38,4 +38,4 @@ def plot_conv_weights(weights):
         ax.set_xticks([])
         ax.set_yticks([])
 
-    plt.show()
+    plt.savefig("plots/weights_{}.png".format(timestamp))
