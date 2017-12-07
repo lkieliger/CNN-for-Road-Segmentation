@@ -33,8 +33,10 @@ def main(argv=None):  # pylint: disable=unused-argument
     train_labels_filename = data_dir + 'groundtruth/'
 
     # Extract it into numpy arrays.
-    data = extract_data(train_data_filename, NUM_IMAGES)
-    labels = extract_labels(train_labels_filename, NUM_IMAGES)
+    data = extract_data(train_data_filename)
+    labels = extract_labels(train_labels_filename)
+
+    print("Data shape: {}".format(data.shape))
 
     num_epochs = NUM_EPOCHS
 
@@ -47,28 +49,34 @@ def main(argv=None):  # pylint: disable=unused-argument
             c1 = c1 + 1
     print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
 
-    # TODO: shuffle before balancing ?
-    print('Balancing training data...')
-    min_c = min(c0, c1)
-    idx0 = [i for i, j in enumerate(labels) if j[0] == 1]
-    idx1 = [i for i, j in enumerate(labels) if j[1] == 1]
-    new_indices = idx0[0:min_c] + idx1[0:min_c]
-    print(len(new_indices))
-    print(data.shape)
-    data = data[new_indices, :, :, :]
-    labels = labels[new_indices]
+    # Shuffling test data
+    np.random.seed(SEED)
+    shuffling_indices = np.random.permutation(range(data.shape[0]))
+    data = data[shuffling_indices, :, :, :]
+    labels = labels[shuffling_indices]
 
-    data_size = labels.shape[0]
-    print(data_size)
+    if BALANCE_DATA:
+        print('Balancing training data...')
+        min_c = min(c0, c1)
+        idx0 = [i for i, j in enumerate(labels) if j[0] == 1]
+        idx1 = [i for i, j in enumerate(labels) if j[1] == 1]
+        new_indices = idx0[0:min_c] + idx1[0:min_c]
+        print(len(new_indices))
+        print(data.shape)
+        data = data[new_indices, :, :, :]
+        labels = labels[new_indices]
 
-    c0 = 0
-    c1 = 0
-    for i in range(len(labels)):
-        if labels[i][0] == 1:
-            c0 = c0 + 1
-        else:
-            c1 = c1 + 1
-    print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
+        data_size = labels.shape[0]
+        print(data_size)
+
+        c0 = 0
+        c1 = 0
+        for i in range(len(labels)):
+            if labels[i][0] == 1:
+                c0 = c0 + 1
+            else:
+                c1 = c1 + 1
+        print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
 
 
     # Split data
@@ -100,14 +108,8 @@ def main(argv=None):  # pylint: disable=unused-argument
             init_loc = tf.local_variables_initializer()
             tensorflow_session.run(init)
             tensorflow_session.run(init_loc)
-            # tf.initialize_all_variables().run()
-
-            # Build the summary operation based on the TF collection of Summaries.
-            summary_op = tf.summary.merge_all()
-            summary_writer = tf.summary.FileWriter(FLAGS.train_dir, graph_def=tensorflow_session.graph_def)
 
             print('Initialized!')
-            # Loop through training steps.
             print('Total number of iterations = ' + str(int(num_epochs * data_train.shape[0] / BATCH_SIZE)))
 
             training_indices = range(data_train.shape[0])
@@ -196,6 +198,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                 # Save the variables to disk.
                 save_path = learner.saver.save(tensorflow_session, FLAGS.train_dir + "/model.ckpt")
                 print("\t Model saved in file: %s" % save_path)
+
 
         plot_accuracy([accuracy_data_training, accuracy_data_validation], logger.get_timestamp())
         logger.save()

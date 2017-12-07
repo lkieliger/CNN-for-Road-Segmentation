@@ -53,7 +53,7 @@ class Learner:
 
     def _init_optimizer(self):
         # Use simple momentum for the optimization.
-        self.optimizer = tf.train.AdamOptimizer(0.0001).minimize(self.loss, global_step=self.batch)
+        self.optimizer = tf.train.AdamOptimizer(ADAM_INITIAL_LEARNING_RATE).minimize(self.loss, global_step=self.batch)
 
     def _init_predictions(self):
         self.logits = self.cNNModel.model_func()(self.data_node, True)  # BATCH_SIZE*NUM_LABELS
