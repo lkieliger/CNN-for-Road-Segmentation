@@ -55,12 +55,14 @@ def get_prediction(img, convolutional_model: BaselineModel, tensorflow_session: 
     data_indices = range(data.shape[0])
     img_predictions = []
 
+    data_node = tf.placeholder(tf.float32, shape=(None, EFFECTIVE_INPUT_SIZE, EFFECTIVE_INPUT_SIZE, NUM_CHANNELS))
+    output = tf.nn.softmax(convolutional_model.model_func()(data_node))
+
     for i in range (0, data.shape[0], BATCH_SIZE):
         batch_data = data[data_indices[i:i+BATCH_SIZE]]
-        data_node = tf.constant(batch_data)
-        output = tf.nn.softmax(convolutional_model.model_func()(data_node))
-        output_prediction = tensorflow_session.run(output)
+        output_prediction = tensorflow_session.run(output, feed_dict={data_node : batch_data})
         img_predictions.append(output_prediction)
+
 
     stacked_predictions = [numpy.stack(batch_predictions_list) for batch_predictions_list in img_predictions]
     stacked_batches = numpy.vstack(stacked_predictions)
@@ -105,7 +107,6 @@ def get_prediction_with_overlay(filename, image_idx, convolutional_model: Baseli
     imageid = "satImage_%.3d" % image_idx
     image_filename = filename + imageid + ".png"
     img = mpimg.imread(image_filename)
-
     img_prediction = get_prediction(img, convolutional_model, tensorflow_session)
     oimg = make_img_overlay(img, img_prediction)
 

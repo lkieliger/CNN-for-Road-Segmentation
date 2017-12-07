@@ -85,7 +85,7 @@ class BaselineModel(AbstractModel):
             pool_shape = pool2.get_shape().as_list()
             reshape = tf.reshape(
                 pool2,
-                [pool_shape[0], pool_shape[1] * pool_shape[2] * pool_shape[3]])
+                shape=[-1, pool_shape[1] * pool_shape[2] * pool_shape[3]])
 
             hidden = relu(tf.matmul(reshape, self.fc1_weights) + self.fc1_biases)
 

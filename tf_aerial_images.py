@@ -18,11 +18,25 @@ FLAGS = tf.app.flags.FLAGS
 def output_training_set_results(session, learner, train_data_filename):
     print("Running prediction on training set")
     prediction_training_dir = "predictions_training/"
+
+
     if not os.path.isdir(prediction_training_dir):
         os.mkdir(prediction_training_dir)
     for i in range(1, TRAINING_SIZE + 1):
-        pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
-        Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
+        #pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
+        #Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
+        oimg = get_prediction_with_overlay(train_data_filename, i, learner.cNNModel, session)
+        oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
+
+
+def output_validation_set_results(session, learner, train_data_filename):
+    print("Running prediction on validation set")
+    prediction_training_dir = "predictions_training/"
+    if not os.path.isdir(prediction_training_dir):
+        os.mkdir(prediction_training_dir)
+    for i in range(TRAINING_SIZE, TRAINING_SIZE + VALIDATION_SIZE + 1):
+        #pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
+        #Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
         oimg = get_prediction_with_overlay(train_data_filename, i, learner.cNNModel, session)
         oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
 
@@ -208,6 +222,7 @@ def main(argv=None):  # pylint: disable=unused-argument
         print("")
         weigths_1 = tensorflow_session.run(learner.cNNModel.conv1_weights)
         output_training_set_results(tensorflow_session, learner, train_data_filename)
+        output_validation_set_results(tensorflow_session, learner, train_data_filename)
 
         #plot_accuracy([accuracy_data_training, accuracy_data_validation])
         #print(weigths_1)
