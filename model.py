@@ -209,7 +209,7 @@ class CustomModel(AbstractModel):
             print('pool2 ' + str(pool2.get_shape()))
             print('conv3 ' + str(conv3.get_shape()))
             print('relu3 ' + str(relu3.get_shape()))
-            print('pool3 ' + str(pool3.get_shape()))
+            #print('pool3 ' + str(pool3.get_shape()))
             print('conv4 ' + str(conv4.get_shape()))
             print('relu4 ' + str(relu4.get_shape()))
             print('pool4 ' + str(pool4.get_shape()))

@@ -51,12 +51,21 @@ def get_prediction(img, convolutional_model: BaselineModel, tensorflow_session: 
     :return: The prediction
     """
     data = numpy.asarray(img_crop(img, IMG_PATCH_SIZE, IMG_PATCH_SIZE))
-    data_node = tf.constant(data)
-    output = tf.nn.softmax(convolutional_model.model_func()(data_node))
-    output_prediction = tensorflow_session.run(output)
-    img_prediction = label_to_img(img.shape[0], img.shape[1], IMG_PATCH_SIZE, IMG_PATCH_SIZE, output_prediction)
 
-    return img_prediction
+    data_indices = range(data.shape[0])
+    img_predictions = []
+
+    for i in range (0, data.shape[0], BATCH_SIZE):
+        batch_data = data[data_indices[i:i+BATCH_SIZE]]
+        data_node = tf.constant(batch_data)
+        output = tf.nn.softmax(convolutional_model.model_func()(data_node))
+        output_prediction = tensorflow_session.run(output)
+        img_predictions.append(output_prediction)
+
+    stacked_predictions = [numpy.stack(batch_predictions_list) for batch_predictions_list in img_predictions]
+    stacked_batches = numpy.vstack(stacked_predictions)
+
+    return label_to_img(img.shape[0], img.shape[1], IMG_PATCH_SIZE, IMG_PATCH_SIZE, stacked_batches)
 
 
 def get_prediction_with_groundtruth(filename, image_idx, convolutional_model: BaselineModel, tensorflow_session: tf.Session):

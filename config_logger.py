@@ -45,6 +45,7 @@ class ConfigLogger:
                 '=================', ret, ret,
                 'Model:', ret,
                 self.model_description, ret, ret,
+                'Data bal.: ', spacer, str(BALANCE_DATA), ret,
                 'Pix depth: ', spacer, str(PIXEL_DEPTH), ret,
                 'Num img: ', spacer, str(NUM_IMAGES), ret,
                 'Train size: ', spacer, str(TRAINING_SIZE), ret,
