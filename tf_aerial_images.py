@@ -38,7 +38,7 @@ def output_validation_set_results(session, learner, train_data_filename):
         #pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
         #Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
         oimg = get_prediction_with_overlay(train_data_filename, i, learner.cNNModel, session)
-        oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
+        oimg.save(prediction_training_dir + "overlay_val_" + str(i) + ".png")
 
 def main(argv=None):  # pylint: disable=unused-argument
 
@@ -46,9 +46,11 @@ def main(argv=None):  # pylint: disable=unused-argument
     train_data_filename = data_dir + 'images/'
     train_labels_filename = data_dir + 'groundtruth/'
 
+    permutations = np.random.permutation(range(NUM_IMAGES))
+
     # Extract it into numpy arrays.
-    data = extract_data(train_data_filename)
-    labels = extract_labels(train_labels_filename)
+    data = extract_data(train_data_filename, permutations)
+    labels = extract_labels(train_labels_filename, permutations)
 
     print("Data shape: {}".format(data.shape))
 
@@ -64,10 +66,10 @@ def main(argv=None):  # pylint: disable=unused-argument
     print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
 
     # Shuffling test data
-    np.random.seed(SEED)
-    shuffling_indices = np.random.permutation(range(data.shape[0]))
-    data = data[shuffling_indices, :, :, :]
-    labels = labels[shuffling_indices]
+    #np.random.seed(SEED)
+    #shuffling_indices = np.random.permutation(range(data.shape[0]))
+    #data = data[shuffling_indices, :, :, :]
+    #labels = labels[shuffling_indices]
 
     if BALANCE_DATA:
         print('Balancing training data...')
@@ -217,16 +219,19 @@ def main(argv=None):  # pylint: disable=unused-argument
         plot_accuracy([accuracy_data_training, accuracy_data_validation], logger.get_timestamp())
         logger.save()
 
+        weigths_1 = tensorflow_session.run(learner.cNNModel.conv1_weights)
+        plot_conv_weights(weigths_1, logger.get_timestamp())
+
         print("=============================================================")
         print("=============================================================")
         print("")
-        weigths_1 = tensorflow_session.run(learner.cNNModel.conv1_weights)
+
+
         output_training_set_results(tensorflow_session, learner, train_data_filename)
         output_validation_set_results(tensorflow_session, learner, train_data_filename)
 
-        #plot_accuracy([accuracy_data_training, accuracy_data_validation])
-        #print(weigths_1)
-        plot_conv_weights(weigths_1, logger.get_timestamp())
+
+
 
 if __name__ == '__main__':
     tf.app.run()

@@ -2,12 +2,13 @@ import os
 
 import matplotlib.image as mpimg
 import numpy
+import random
 
 from helpers.image_helpers import img_crop
 from program_constants import *
 
 
-def extract_data(filename):
+def extract_data(filename, permutations):
     """
     Extract the images into a 4D tensor [image index, y, x, channels]
     Values are rescales from [0, 255] down to [-0.5, 0.5]
@@ -30,6 +31,11 @@ def extract_data(filename):
     IMG_WIDTH = imgs[0].shape[0]
     IMG_HEIGHT = imgs[0].shape[1]
     N_PATCHES_PER_IMAGE = (IMG_WIDTH / IMG_PATCH_SIZE) * (IMG_HEIGHT / IMG_PATCH_SIZE)
+
+    imgs = numpy.array(imgs)
+
+    if SHUFFLE_DATA:
+        imgs = imgs[permutations]
 
     # List formed by consecutive series of patches of each image (patches ordered in row order)
     img_patches = [img_crop(imgs[i], IMG_PATCH_SIZE, IMG_PATCH_SIZE) for i in range(NUM_IMAGES)]
@@ -55,7 +61,7 @@ def value_to_class(v):
     else:
         return [1, 0]
 
-def extract_labels(filename):
+def extract_labels(filename, permutations):
     """
     Extract from ground truth images the class labels and convert them 
     into a 1-hot matrix of the form [image index, label index
@@ -75,6 +81,11 @@ def extract_labels(filename):
             gt_imgs.append(img)
         else:
             print('File ' + image_filename + ' does not exist')
+
+    gt_imgs = numpy.array(gt_imgs)
+
+    if SHUFFLE_DATA:
+        gt_imgs = gt_imgs[permutations]
 
     # List formed by consecutive series of patches of each image (patches ordered in row order)
     gt_patches = [img_crop(gt_imgs[i], IMG_PATCH_SIZE, IMG_PATCH_SIZE) for i in range(NUM_IMAGES)]

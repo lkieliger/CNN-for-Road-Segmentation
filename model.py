@@ -39,7 +39,7 @@ class AbstractModel:
 
 class BaselineModel(AbstractModel):
     def __init__(self):
-        AbstractModel.__init__(self, "Conv[5,5,3,32] ReLU Pool[2] Conv[5,5,32,64] ReLu Pool[2] Full[512] ReLu Full[512]")
+        AbstractModel.__init__(self, "Conv[5,5,3,32] ReLU Pool[2] Conv[5,5,32,64] ReLu Pool[2] Full[512] ReLu Full[2]")
         self._initialize_model_params()
 
     def _initialize_model_params(self):
@@ -100,8 +100,8 @@ class BaselineModel(AbstractModel):
 
 class CustomModel(AbstractModel):
     def __init__(self):
-        AbstractModel.__init__(self, "Conv[3,3,3,32] ReLU Pool[2] Conv[3,3,32,64] ReLu Pool[2] "
-                                     "Conv[3,3,64,128] Pool[2] Full[512] ReLu ")
+        AbstractModel.__init__(self, "Conv[5,5,3,32] ReLU Pool[2] Drop Conv[3,3,32,64] ReLu Pool[2] Drop"
+                                     "Conv[3,3,64,128] Pool[2] Conv[3,3,64,128] Pool[2] Drop Full[128] ReLu ")
         self._initialize_model_params()
 
     def _initialize_model_params(self):
@@ -109,13 +109,13 @@ class CustomModel(AbstractModel):
         # initial value which will be assigned when when we call:
         # {tf.initialize_all_variables().run()}
 
-        CONV_DEPTH1 = 64;
-        CONV_DEPTH2 = 128;
-        CONV_DEPTH3 = 256;
+        CONV_DEPTH1 = 32;
+        CONV_DEPTH2 = 64;
+        CONV_DEPTH3 = 128;
         TWO_POWER_N_POOL = 2 * 2 * 2;
         FC1_SIZE = 128;
 
-        self.conv1_weights = weight_variable([3, 3, NUM_CHANNELS, CONV_DEPTH1])
+        self.conv1_weights = weight_variable([5, 5, NUM_CHANNELS, CONV_DEPTH1])
         self.conv1_biases = bias_variable([CONV_DEPTH1])
 
         self.conv2_weights = weight_variable([3, 3, CONV_DEPTH1, CONV_DEPTH2])
@@ -173,27 +173,13 @@ class CustomModel(AbstractModel):
             if USE_DROPOUT:
                 pool4 = dropout(pool4);
 
-            # Uncomment these lines to check the size of each layer
-            print('data ' + str(data.get_shape()))
-            print('conv1 ' + str(conv1.get_shape()))
-            print('relu1 ' + str(relu1.get_shape()))
-            print('pool1 ' + str(pool1.get_shape()))
-            print('conv2 ' + str(conv2.get_shape()))
-            print('relu2 ' + str(relu2.get_shape()))
-            print('pool2 ' + str(pool2.get_shape()))
-            print('conv3 ' + str(conv3.get_shape()))
-            print('relu3 ' + str(relu3.get_shape()))
-            #print('pool3 ' + str(pool3.get_shape()))
-            print('conv4 ' + str(conv4.get_shape()))
-            print('relu4 ' + str(relu4.get_shape()))
-            print('pool4 ' + str(pool4.get_shape()))
 
             # Reshape the feature map cuboid into a 2D matrix to feed it to the
             # fully connected layers.
             pool_shape = pool4.get_shape().as_list()
             reshape = tf.reshape(
                 pool4,
-                [pool_shape[0], pool_shape[1] * pool_shape[2] * pool_shape[3]])
+                [-1, pool_shape[1] * pool_shape[2] * pool_shape[3]])
 
             print(reshape)
 

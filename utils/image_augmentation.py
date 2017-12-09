@@ -48,4 +48,4 @@ def generate_rotated_image(path_input, path_output, use_grayscale, angle=45):
 
 
 if __name__ == '__main__':
-    generate_rotated_training_images(use_delta=True)
+    generate_rotated_training_images(-90, use_delta=False, override_image=False)
