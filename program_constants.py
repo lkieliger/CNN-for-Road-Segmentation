@@ -1,3 +1,17 @@
+"""
+Path constants
+"""
+MODEL_PATH = "models/"
+TRAIN_DATA_PATH = "data/training/"
+TRAIN_DATA_IMAGES_PATH = TRAIN_DATA_PATH + "images/"
+TRAIN_DATA_GROUNDTRUTH_PATH = TRAIN_DATA_PATH + "groundtruth/"
+TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH = TRAIN_DATA_PATH + "images_train_split/"
+TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH =TRAIN_DATA_PATH + "images_validation_split/"
+TRAIN_DATA_TEST_SPLIT_IMAGES_PATH =TRAIN_DATA_PATH + "images_test_split/"
+TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH = TRAIN_DATA_PATH + "groundtruth_train_split/"
+TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH =TRAIN_DATA_PATH + "groundtruth_validation_split/"
+TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH =TRAIN_DATA_PATH + "groundtruth_test_split/"
+
 NUM_CHANNELS = 3  # RGB images
 PIXEL_DEPTH = 255
 NUM_LABELS = 2
@@ -13,7 +27,7 @@ ADAM_INITIAL_LEARNING_RATE = 0.001 # more than 0.01 for custom, 0.001 for base m
 RESTORE_MODEL = False  # If True, restore existing model instead of training a new one
 RECORDING_STEP = 1000
 USE_DROPOUT = True
-BALANCE_DATA = True
+BALANCE_DATA = False
 DROPOUT_KEEP_RATE = 0.8;
 
 # Set image patch size in pixels

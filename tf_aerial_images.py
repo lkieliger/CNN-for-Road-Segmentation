@@ -96,7 +96,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
 
     # Split data
-    data_train, data_validation, data_test, labels_train, labels_validation, labels_test = split_data(data, labels)
+    data_train, data_validation, data_test, labels_train, labels_validation, labels_test = split_patches(data, labels)
 
     print("Training data shape: {}".format(data_train.shape))
     print("Validation data shape: {}".format(data_validation.shape))
@@ -216,16 +216,15 @@ def main(argv=None):  # pylint: disable=unused-argument
                 print("\t Model saved in file: %s" % save_path)
 
 
-        plot_accuracy([accuracy_data_training, accuracy_data_validation], logger.get_timestamp())
-        logger.save()
+            plot_accuracy([accuracy_data_training, accuracy_data_validation], logger.get_timestamp())
+            logger.save()
 
-        weigths_1 = tensorflow_session.run(learner.cNNModel.conv1_weights)
-        plot_conv_weights(weigths_1, logger.get_timestamp())
+            weigths_1 = tensorflow_session.run(learner.cNNModel.conv1_weights)
+            plot_conv_weights(weigths_1, logger.get_timestamp())
 
         print("=============================================================")
         print("=============================================================")
         print("")
-
 
         output_training_set_results(tensorflow_session, learner, train_data_filename)
         output_validation_set_results(tensorflow_session, learner, train_data_filename)

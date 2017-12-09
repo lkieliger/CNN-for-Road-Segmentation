@@ -100,7 +100,7 @@ def extract_labels(filename, permutations):
     return labels.astype(numpy.float32)
 
 
-def split_data(data, labels):
+def split_patches(data, labels):
 
     data_size = data.shape[0]
 
