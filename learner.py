@@ -10,7 +10,7 @@ class Learner:
         self._init_learner()
 
     def _init_learner(self):
-        self.cNNModel = BaselineModel()
+        self.cNNModel = CustomModel()
 
         self._init_nodes()
         self._init_predictions()

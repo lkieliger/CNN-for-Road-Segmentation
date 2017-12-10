@@ -112,7 +112,7 @@ class CustomModel(AbstractModel):
         CONV_DEPTH1 = 32;
         CONV_DEPTH2 = 64;
         CONV_DEPTH3 = 128;
-        TWO_POWER_N_POOL = 2 * 2 * 2;
+        TWO_POWER_N_POOL = 2 * 2 * 2 * 2;
         FC1_SIZE = 128;
 
         self.conv1_weights = weight_variable([5, 5, NUM_CHANNELS, CONV_DEPTH1])
@@ -129,7 +129,7 @@ class CustomModel(AbstractModel):
 
         # Third layer FULLY CONNECTED
         self.fc1_weights = weight_variable(
-            [int(EFFECTIVE_INPUT_SIZE / TWO_POWER_N_POOL * EFFECTIVE_INPUT_SIZE / TWO_POWER_N_POOL * CONV_DEPTH3),
+            [int((EFFECTIVE_INPUT_SIZE / TWO_POWER_N_POOL) * (EFFECTIVE_INPUT_SIZE / TWO_POWER_N_POOL) * CONV_DEPTH3),
              FC1_SIZE]
         )
         self.fc1_biases = bias_variable([FC1_SIZE])
@@ -150,27 +150,28 @@ class CustomModel(AbstractModel):
             relu1 = relu(conv1 + self.conv1_biases)
             pool1 = max_pool_2x2(relu1)
 
-            if USE_DROPOUT:
+            if USE_DROPOUT and train:
                 pool1 = dropout(pool1);
 
             conv2 = conv2d(pool1, self.conv2_weights)
             relu2 = relu(conv2 + self.conv2_biases)
             pool2 = max_pool_2x2(relu2)
 
-            if USE_DROPOUT:
+            if USE_DROPOUT and train:
                 pool2 = dropout(pool2);
 
             conv3 = conv2d(pool2, self.conv3_weights)
             relu3 = relu(conv3 + self.conv3_biases)
-            #pool3 = max_pool_2x2(relu3)
+            pool3 = max_pool_2x2(relu3)
 
-            # No dropout as in VGGNet config A
+            if USE_DROPOUT and train:
+                pool3 = dropout(pool3)
 
-            conv4 = conv2d(relu3, self.conv4_weights)
+            conv4 = conv2d(pool3, self.conv4_weights)
             relu4 = relu(conv4 + self.conv4_biases)
             pool4 = max_pool_2x2(relu4)
 
-            if USE_DROPOUT:
+            if USE_DROPOUT and train:
                 pool4 = dropout(pool4);
 
 

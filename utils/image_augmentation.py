@@ -56,4 +56,4 @@ if __name__ == '__main__':
     clean_folder(output_path_images+"*")
     clean_folder(output_path_truth+"*")
     generate_rotated_training_images(0, use_delta=False, override_image=False)
-    generate_rotated_training_images(90, use_delta=False, override_image=False)
+   # generate_rotated_training_images(90, use_delta=False, override_image=False)

@@ -51,8 +51,5 @@ def partition_data(train_prop, val_prop, test_prop):
             print('File ' + image_filename + ' does not exist')
 
 
-
-
-
 if __name__ == '__main__':
-    partition_data(.8, .1, .1)
+    partition_data(.8, .2, .0)
