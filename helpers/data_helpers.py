@@ -71,9 +71,6 @@ def extract_all_data(path, num_images=-1):
         # List formed by consecutive series of patches of each image (patches ordered in row order)
         img_patches = [img_crop(i, IMG_PATCH_SIZE, IMG_PATCH_SIZE, is_2d=False) for i in imgs]
 
-        for i in range(5):
-            cv2.imwrite("test_train_patch_" + str(i) + ".png", img_patches[0][i])
-
         # List of all the patches, ordered by image
         data = [img_patches[i][j] for i in range(len(img_patches)) for j in range(len(img_patches[i]))]
     else:
@@ -145,9 +142,6 @@ def extract_all_labels(path, num_images=-1):
     if IMG_WIDTH > EFFECTIVE_INPUT_SIZE:
         # List formed by consecutive series of patches of each image (patches ordered in row order)
         gt_patches = [img_crop(i, IMG_PATCH_SIZE, IMG_PATCH_SIZE, is_2d=True) for i in gt_imgs]
-
-        for i in range(5):
-            cv2.imwrite("test_train_label_" + str(i) + ".png", gt_patches[0][i])
 
         # List of all the patches, ordered by image
         data = numpy.asarray([gt_patches[i][j] for i in range(len(gt_patches)) for j in range(len(gt_patches[i]))])
