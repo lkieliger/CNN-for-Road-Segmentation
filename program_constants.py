@@ -40,6 +40,6 @@ IMG_PATCH_SIZE = 16
 """
 Context margin around the patch to be considered.
 """
-PATCH_CONTEXT_SIZE = 20 #TODO: go to 20 for 3 pooling custom model
+PATCH_CONTEXT_SIZE = 0 #TODO: go to 20 for 3 pooling custom model
 
 EFFECTIVE_INPUT_SIZE = 2 * PATCH_CONTEXT_SIZE + IMG_PATCH_SIZE
