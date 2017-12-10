@@ -22,11 +22,11 @@ def output_training_set_results(session, learner, train_data_filename):
 
     if not os.path.isdir(prediction_training_dir):
         os.mkdir(prediction_training_dir)
-    for i in range(1, TRAINING_SIZE + 1):
+    for filename in os.listdir(TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH):
         #pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
         #Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
-        oimg = get_prediction_with_overlay(train_data_filename, i, learner.cNNModel, session)
-        oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
+        oimg = get_prediction_with_overlay(os.path.join(TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH, filename), learner.cNNModel, session)
+        oimg.save(prediction_training_dir + "overlay_" + filename)
 
 
 def output_validation_set_results(session, learner, train_data_filename):
@@ -34,11 +34,11 @@ def output_validation_set_results(session, learner, train_data_filename):
     prediction_training_dir = "predictions_training/"
     if not os.path.isdir(prediction_training_dir):
         os.mkdir(prediction_training_dir)
-    for i in range(TRAINING_SIZE, TRAINING_SIZE + VALIDATION_SIZE + 1):
+    for filename in os.listdir(TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH):
         #pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
         #Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
-        oimg = get_prediction_with_overlay(train_data_filename, i, learner.cNNModel, session)
-        oimg.save(prediction_training_dir + "overlay_val_" + str(i) + ".png")
+        oimg = get_prediction_with_overlay(os.path.join(TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH, filename), learner.cNNModel, session)
+        oimg.save(prediction_training_dir + "overlay_val_" + filename)
 
 def main(argv=None):  # pylint: disable=unused-argument
 
@@ -48,6 +48,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     permutations = np.random.permutation(range(NUM_IMAGES))
 
+    """
     # Extract it into numpy arrays.
     data = extract_data(train_data_filename, permutations)
     labels = extract_labels(train_labels_filename, permutations)
@@ -70,33 +71,22 @@ def main(argv=None):  # pylint: disable=unused-argument
     #shuffling_indices = np.random.permutation(range(data.shape[0]))
     #data = data[shuffling_indices, :, :, :]
     #labels = labels[shuffling_indices]
+    
+    """
+    data_train = extract_data(TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH)
+    data_validation = extract_data(TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH)
+    data_test = extract_data(TRAIN_DATA_TEST_SPLIT_IMAGES_PATH)
+
+    labels_train = extract_labels(TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH)
+    labels_validation = extract_labels(TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH)
+    labels_test = extract_labels(TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH)
 
     if BALANCE_DATA:
-        print('Balancing training data...')
-        min_c = min(c0, c1)
-        idx0 = [i for i, j in enumerate(labels) if j[0] == 1]
-        idx1 = [i for i, j in enumerate(labels) if j[1] == 1]
-        new_indices = idx0[0:min_c] + idx1[0:min_c]
-        print(len(new_indices))
-        print(data.shape)
-        data = data[new_indices, :, :, :]
-        labels = labels[new_indices]
-
-        data_size = labels.shape[0]
-        print(data_size)
-
-        c0 = 0
-        c1 = 0
-        for i in range(len(labels)):
-            if labels[i][0] == 1:
-                c0 = c0 + 1
-            else:
-                c1 = c1 + 1
-        print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
-
+        data_train, labels_train = balance_dataset(data_train, labels_train)
+        data_validation, labels_validation = balance_dataset(data_validation, labels_validation)
 
     # Split data
-    data_train, data_validation, data_test, labels_train, labels_validation, labels_test = split_patches(data, labels)
+    #data_train, data_validation, data_test, labels_train, labels_validation, labels_test = split_patches(data, labels)
 
     print("Training data shape: {}".format(data_train.shape))
     print("Validation data shape: {}".format(data_validation.shape))
@@ -126,12 +116,12 @@ def main(argv=None):  # pylint: disable=unused-argument
             tensorflow_session.run(init_loc)
 
             print('Initialized!')
-            print('Total number of iterations = ' + str(int(num_epochs * data_train.shape[0] / BATCH_SIZE)))
+            print('Total number of iterations = ' + str(int(NUM_EPOCHS * data_train.shape[0] / BATCH_SIZE)))
 
             training_indices = range(data_train.shape[0])
             validation_indices = range(data_validation.shape[0])
 
-            for iepoch in range(num_epochs):
+            for iepoch in range(NUM_EPOCHS):
                 # Reset local variables, needed for metrics
                 tensorflow_session.run(init_loc)
                 print("")
