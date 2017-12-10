@@ -4,20 +4,25 @@ import random
 import cv2
 import numpy as np
 
-input_path_truth = '../data/training/groundtruth/'
-input_path_images = '../data/training/images/'
+from utils.dataset_partitioner import clean_folder
+
+input_path_truth = '../data/training/groundtruth_original/'
+input_path_images = '../data/training/images_original/'
+
+output_path_truth = '../data/training/groundtruth/'
+output_path_images = '../data/training/images/'
 
 
 def generate_rotated_training_images(angle=45, use_delta=False, override_image=True):
-    num_files = 100 if override_image else len(next(os.walk(input_path_truth))[2])
+    num_files = 100 if override_image else len(next(os.walk(output_path_truth))[2])
 
     for i in range(1, 101):
         delta = random.uniform(-5, 5) if use_delta else 0
         generate_rotated_image(input_path_truth + 'satImage_' + '{num:03d}'.format(num=i) + '.png',
-                               input_path_truth + 'satImage_' + '{num:03d}'.format(num=i + num_files) + '.png',
+                               output_path_truth + 'satImage_' + '{num:03d}'.format(num=i + num_files) + '.png',
                                True, angle + delta)
         generate_rotated_image(input_path_images + 'satImage_' + '{num:03d}'.format(num=i) + '.png',
-                               input_path_images + 'satImage_' + '{num:03d}'.format(num=i + num_files) + '.png',
+                               output_path_images + 'satImage_' + '{num:03d}'.format(num=i + num_files) + '.png',
                                False, angle + delta)
 
 
@@ -48,4 +53,7 @@ def generate_rotated_image(path_input, path_output, use_grayscale, angle=45):
 
 
 if __name__ == '__main__':
-    generate_rotated_training_images(-90, use_delta=False, override_image=False)
+    clean_folder(output_path_images+"*")
+    clean_folder(output_path_truth+"*")
+    generate_rotated_training_images(0, use_delta=False, override_image=False)
+    generate_rotated_training_images(90, use_delta=False, override_image=False)
