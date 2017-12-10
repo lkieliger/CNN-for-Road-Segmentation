@@ -53,16 +53,6 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     print("Data shape: {}".format(data.shape))
 
-    num_epochs = NUM_EPOCHS
-
-    c0 = 0
-    c1 = 0
-    for i in range(len(labels)):
-        if labels[i][0] == 1:
-            c0 = c0 + 1
-        else:
-            c1 = c1 + 1
-    print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
 
     # Shuffling test data
     #np.random.seed(SEED)
@@ -70,32 +60,12 @@ def main(argv=None):  # pylint: disable=unused-argument
     #data = data[shuffling_indices, :, :, :]
     #labels = labels[shuffling_indices]
 
-    if BALANCE_DATA:
-        print('Balancing training data...')
-        min_c = min(c0, c1)
-        idx0 = [i for i, j in enumerate(labels) if j[0] == 1]
-        idx1 = [i for i, j in enumerate(labels) if j[1] == 1]
-        new_indices = idx0[0:min_c] + idx1[0:min_c]
-        print(len(new_indices))
-        print(data.shape)
-        data = data[new_indices, :, :, :]
-        labels = labels[new_indices]
-
-        data_size = labels.shape[0]
-        print(data_size)
-
-        c0 = 0
-        c1 = 0
-        for i in range(len(labels)):
-            if labels[i][0] == 1:
-                c0 = c0 + 1
-            else:
-                c1 = c1 + 1
-        print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
-
 
     # Split data
     data_train, data_validation, data_test, labels_train, labels_validation, labels_test = split_patches(data, labels)
+
+    if BALANCE_TRAIN_DATA:
+        data_train, labels_train = balance_dataset(data_train, labels_train)
 
     print("Training data shape: {}".format(data_train.shape))
     print("Validation data shape: {}".format(data_validation.shape))
@@ -125,12 +95,12 @@ def main(argv=None):  # pylint: disable=unused-argument
             tensorflow_session.run(init_loc)
 
             print('Initialized!')
-            print('Total number of iterations = ' + str(int(num_epochs * data_train.shape[0] / BATCH_SIZE)))
+            print('Total number of iterations = ' + str(int(NUM_EPOCHS * data_train.shape[0] / BATCH_SIZE)))
 
             training_indices = range(data_train.shape[0])
             validation_indices = range(data_validation.shape[0])
 
-            for iepoch in range(num_epochs):
+            for iepoch in range(NUM_EPOCHS):
                 # Reset local variables, needed for metrics
                 tensorflow_session.run(init_loc)
                 print("")
@@ -187,7 +157,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                 rec = recall(tp, fn)
                 f1s = f1_score(tp, fp, fn)
                 print("\t [ TRAINING REPORT ]")
-                print("\t Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}, F1: {:.2%}".format(acc, pre, rec, f1s))
+                print("\t F1: {:.2%}, Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}".format(f1s, acc, pre, rec))
                 print("\t TP: {}, TN: {}, FP: {}, FN: {} \n".format(tp, tn, fp, fn))
 
                 logger.set_train_score(acc, pre, rec, f1s)
@@ -203,7 +173,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                 rec = recall(tp, fn)
                 f1s = f1_score(tp, fp, fn)
                 print("\t [ VALIDATION REPORT ]")
-                print("\t Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}, F1: {:.2%}".format(acc, pre, rec, f1s))
+                print("\t F1: {:.2%}, Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}".format(f1s, acc, pre, rec))
                 print("\t TP: {}, TN: {}, FP: {}, FN: {} \n".format(tp, tn, fp, fn))
 
                 logger.set_validation_score(acc, pre, rec, f1s)

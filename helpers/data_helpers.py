@@ -38,7 +38,7 @@ def extract_data(filename, permutations):
         imgs = imgs[permutations]
 
     # List formed by consecutive series of patches of each image (patches ordered in row order)
-    img_patches = [img_crop(imgs[i], IMG_PATCH_SIZE, IMG_PATCH_SIZE) for i in range(NUM_IMAGES)]
+    img_patches = [img_crop(imgs[i], IMG_PATCH_SIZE, IMG_PATCH_SIZE, is_2d=False) for i in range(NUM_IMAGES)]
 
     # List of all the patches, ordered by image
     data = [img_patches[i][j] for i in range(len(img_patches)) for j in range(len(img_patches[i]))]
@@ -88,7 +88,7 @@ def extract_labels(filename, permutations):
         gt_imgs = gt_imgs[permutations]
 
     # List formed by consecutive series of patches of each image (patches ordered in row order)
-    gt_patches = [img_crop(gt_imgs[i], IMG_PATCH_SIZE, IMG_PATCH_SIZE) for i in range(NUM_IMAGES)]
+    gt_patches = [img_crop(gt_imgs[i], IMG_PATCH_SIZE, IMG_PATCH_SIZE, is_2d=True) for i in range(NUM_IMAGES)]
 
     # List of all the patches, ordered by image
     data = numpy.asarray([gt_patches[i][j] for i in range(len(gt_patches)) for j in range(len(gt_patches[i]))])
@@ -126,3 +126,38 @@ def split_patches(data, labels):
     labels_test = labels[test_indices]
 
     return data_train, data_validation, data_test, labels_train, labels_validation, labels_test
+
+
+def balance_dataset(data, labels):
+    c0 = 0
+    c1 = 0
+    for i in range(len(labels)):
+        if labels[i][0] == 1:
+            c0 = c0 + 1
+        else:
+            c1 = c1 + 1
+    print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
+
+    print('Balancing data...')
+    min_c = min(c0, c1)
+    idx0 = [i for i, j in enumerate(labels) if j[0] == 1]
+    idx1 = [i for i, j in enumerate(labels) if j[1] == 1]
+    new_indices = idx0[0:min_c] + idx1[0:min_c]
+    print(len(new_indices))
+    print(data.shape)
+    data = data[new_indices, :, :, :]
+    labels = labels[new_indices]
+
+    data_size = labels.shape[0]
+    print(data_size)
+
+    c0 = 0
+    c1 = 0
+    for i in range(len(labels)):
+        if labels[i][0] == 1:
+            c0 = c0 + 1
+        else:
+            c1 = c1 + 1
+    print('Balanced number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
+
+    return data, labels

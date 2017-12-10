@@ -5,7 +5,7 @@ import tensorflow as tf
 import matplotlib.image as mpimg
 
 
-def img_crop(im, w, h):
+def img_crop(im, w, h, is_2d=False):
     """
     Extract patches from an image
     
@@ -18,7 +18,6 @@ def img_crop(im, w, h):
     list_patches = []
     imgwidth = im.shape[0]
     imgheight = im.shape[1]
-    is_2d = len(im.shape) < 3
 
     # If context is enabled, reflect the image at the edge
     if PATCH_CONTEXT_SIZE > 0 and not is_2d:
@@ -30,7 +29,7 @@ def img_crop(im, w, h):
     for i in range(0, imgheight, h):
         for j in range(0, imgwidth, w):
             if is_2d:
-                im_patch = im[j:j + w + 2 * PATCH_CONTEXT_SIZE, i:i + h + 2 * PATCH_CONTEXT_SIZE]
+                im_patch = im[j:j + w, i:i + h]
             else:
                 im_patch = im[j:j + w + 2 * PATCH_CONTEXT_SIZE, i:i + h + 2 * PATCH_CONTEXT_SIZE, :]
             list_patches.append(im_patch)
