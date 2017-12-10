@@ -109,13 +109,13 @@ class CustomModel(AbstractModel):
         # initial value which will be assigned when when we call:
         # {tf.initialize_all_variables().run()}
 
-        CONV_DEPTH1 = 32;
-        CONV_DEPTH2 = 64;
-        CONV_DEPTH3 = 128;
+        CONV_DEPTH1 = 64;
+        CONV_DEPTH2 = 128;
+        CONV_DEPTH3 = 256;
         TWO_POWER_N_POOL = 2 * 2 * 2 * 2;
-        FC1_SIZE = 128;
+        FC1_SIZE = 256;
 
-        self.conv1_weights = weight_variable([5, 5, NUM_CHANNELS, CONV_DEPTH1])
+        self.conv1_weights = weight_variable([11, 11, NUM_CHANNELS, CONV_DEPTH1])
         self.conv1_biases = bias_variable([CONV_DEPTH1])
 
         self.conv2_weights = weight_variable([3, 3, CONV_DEPTH1, CONV_DEPTH2])

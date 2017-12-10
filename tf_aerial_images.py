@@ -10,6 +10,7 @@ from learner import Learner
 from metrics import *
 from model import *
 from program_constants import *
+from utils.dataset_partitioner import read_partitions
 
 now = datetime.datetime.now()
 FLAGS = tf.app.flags.FLAGS
@@ -64,10 +65,12 @@ def main(argv=None):  # pylint: disable=unused-argument
     # Split data
     #data_train, data_validation, data_test, labels_train, labels_validation, labels_test = split_patches(data, labels)
 
-    data_train = extract_all_data(TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH)
-    labels_train = extract_all_labels(TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH)
-    data_validation = extract_all_data(TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH)
-    labels_validation = extract_all_labels(TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH)
+    #data_train = extract_all_data(TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH)
+    #labels_train = extract_all_labels(TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH)
+    #data_validation = extract_all_data(TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH)
+    #labels_validation = extract_all_labels(TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH)
+
+    data_train, data_validation, data_test, labels_train, labels_validation, labels_test = read_partitions()
 
     if BALANCE_TRAIN_DATA:
         data_train, labels_train = balance_dataset(data_train, labels_train)

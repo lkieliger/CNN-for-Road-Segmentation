@@ -2,8 +2,6 @@ import os
 
 import matplotlib.image as mpimg
 import numpy
-import random
-import cv2
 
 from helpers.image_helpers import img_crop
 from program_constants import *
@@ -119,7 +117,7 @@ def extract_labels(filename, permutations):
     return labels.astype(numpy.float32)
 
 
-def extract_all_labels(path, num_images=-1):
+def extract_all_labels(path, num_images=-1, convert_to_1hot=True):
     """
     Extract from ground truth images the class labels and convert them 
     into a 1-hot matrix of the form [image index, label index
@@ -150,10 +148,10 @@ def extract_all_labels(path, num_images=-1):
         data = gt_imgs
 
     # Compute the class label of each patch based on the mean value
-    labels = numpy.asarray([value_to_class(numpy.mean(data[i])) for i in range(len(data))])
-
-    # Convert to dense 1-hot representation.
-
+    if convert_to_1hot:
+        labels = numpy.asarray([value_to_class(numpy.mean(data[i])) for i in range(len(data))])
+    else:
+        labels = data
 
     return labels.astype(numpy.float32)
 

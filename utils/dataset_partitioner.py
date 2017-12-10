@@ -2,17 +2,35 @@ import numpy as np
 import os
 import glob
 import cv2
-import shutil
+import matplotlib.image as mpimg
+
+from helpers.data_helpers import extract_all_data, extract_all_labels
+from helpers.image_helpers import img_crop
 from program_constants import *
 
 PATH_PREFIX = "../"
+FILENAME = "nparray.npy"
 
 def clean_folder(path):
     files = glob.glob(path)
     for f in files:
         os.remove(f)
+
+def clean_all_folders():
+    clean_folder(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH + "*")
+    clean_folder(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH + "*")
+    clean_folder(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_IMAGES_PATH + "*")
+    clean_folder(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH + "*")
+    clean_folder(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH + "*")
+    clean_folder(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH + "*")
+
+def save_patches(patches, filename):
+
+    for i, patch in enumerate(patches):
+        patch.save(filename+"patch"+str(i)+".png")
+
         
-def partition_data(train_prop, val_prop, test_prop):
+def partition_data(train_prop, val_prop, test_prop, make_patches=False):
     np.random.seed(SEED)
 
     num_images = len(next(os.walk(PATH_PREFIX + TRAIN_DATA_IMAGES_PATH))[2])
@@ -22,12 +40,7 @@ def partition_data(train_prop, val_prop, test_prop):
     indices_validation = shuffled_indices[
                          int(num_images * train_prop): int(num_images * train_prop) + int(num_images * val_prop)]
 
-    clean_folder(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH + "*")
-    clean_folder(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH + "*")
-    clean_folder(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_IMAGES_PATH + "*")
-    clean_folder(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH + "*")
-    clean_folder(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH + "*")
-    clean_folder(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH + "*")
+    clean_all_folders()
 
     for i in range(1, num_images + 1):
         imageid = "satImage_%.3d" % i
@@ -51,5 +64,43 @@ def partition_data(train_prop, val_prop, test_prop):
             print('File ' + image_filename + ' does not exist')
 
 
+def partition_patches(train_prop, val_prop, test_prop):
+    np.random.seed(SEED)
+
+    clean_all_folders()
+
+    data = extract_all_data(PATH_PREFIX + TRAIN_DATA_IMAGES_PATH)
+    labels = extract_all_labels(PATH_PREFIX + TRAIN_DATA_GROUNDTRUTH_PATH, num_images=-1)
+
+    num_patches = data.shape[0]
+
+    shuffled_indices = np.random.permutation(range(num_patches))
+
+    indices_train = shuffled_indices[0:int(num_patches * train_prop)]
+    indices_validation = shuffled_indices[int(num_patches * train_prop): int(num_patches * train_prop) + int(num_patches * val_prop)]
+    indices_test = shuffled_indices[int(num_patches * train_prop) + int(num_patches * val_prop) : ]
+
+    np.save(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH + FILENAME, data[indices_train])
+    np.save(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH + FILENAME, labels[indices_train])
+
+    np.save(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH + FILENAME, data[indices_validation])
+    np.save(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH + FILENAME, labels[indices_validation])
+
+    np.save(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_IMAGES_PATH + FILENAME, data[indices_test])
+    np.save(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH + FILENAME, labels[indices_test])
+
+
+def read_partitions():
+    d_tr = np.load(TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH + FILENAME)
+    l_tr = np.load(TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH + FILENAME)
+
+    d_val = np.load(TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH + FILENAME)
+    l_val = np.load(TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH + FILENAME)
+
+    d_te = np.load(TRAIN_DATA_TEST_SPLIT_IMAGES_PATH + FILENAME)
+    l_te = np.load(TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH + FILENAME)
+
+    return d_tr, d_val, d_te, l_tr, l_val, l_te
+
 if __name__ == '__main__':
-    partition_data(.8, .2, .0)
+    partition_patches(.8, .2, .0)
