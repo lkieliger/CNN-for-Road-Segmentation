@@ -26,7 +26,7 @@ NUM_EPOCHS = 50
 ADAM_INITIAL_LEARNING_RATE = 0.001 # more than 0.01 for custom, 0.001 for base model (maybe even less)
 RESTORE_MODEL = False  # If True, restore existing model instead of training a new one
 RECORDING_STEP = 1000
-USE_DROPOUT = True
+USE_DROPOUT = False
 BALANCE_DATA = False
 DROPOUT_KEEP_RATE = 0.8;
 

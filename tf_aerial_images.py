@@ -1,5 +1,5 @@
 import sys
-
+import numpy as np
 import datetime
 
 from config_logger import ConfigLogger
@@ -12,9 +12,6 @@ from model import *
 from program_constants import *
 
 now = datetime.datetime.now()
-tf.app.flags.DEFINE_string('train_dir', 'tmp/job-{}'.format(now.strftime("%d-%H_%M_%S")),
-                           """Directory where to write event logs """
-                           """and checkpoint.""")
 FLAGS = tf.app.flags.FLAGS
 
 def output_training_set_results(session, learner, train_data_filename):
@@ -214,7 +211,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                 accuracy_data_validation.append(acc)
 
                 # Save the variables to disk.
-                save_path = learner.saver.save(tensorflow_session, FLAGS.train_dir + "/model.ckpt")
+                save_path = learner.saver.save(tensorflow_session, "models/model.ckpt")
                 print("\t Model saved in file: %s" % save_path)
 
 
