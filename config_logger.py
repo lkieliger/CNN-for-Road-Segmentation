@@ -1,31 +1,43 @@
 import datetime
+import numpy as np
+from pathlib import Path
+
 from program_constants import *
 
 ret = '\n'
 spacer = '\t'
 
+
 class ConfigLogger:
     def __init__(self):
-        now = datetime.datetime.now()
-        self.timestamp = now.strftime("%H:%M %d %b")
-        self.filename = now.strftime("%d-%H_%M_%S")
+        self.timestamp = datetime.datetime.now()
+        self.curr_path_str = "logs/{}".format(self.timestamp.strftime("%d-%H_%M_%S") + '/')
+        curr_path = Path(self.curr_path_str)
+        if not curr_path.is_dir():
+            curr_path.mkdir()
+
         self.acc_train = self.prec_train = self.rec_train = self.f1_train = 0
         self.acc_validation = self.prec_validation = self.rec_validation = self.f1_validation = 0
         self.acc_test = self.pre_test = self.rec_test = self.f1_test = 0
         self.model_description = ''
+        self.train_scores = []
+        self.validation_scores = []
+        self.iteration = 0
 
     def set_train_score(self, acc, pre, rec, f1):
+        self.train_scores.append([acc, pre, rec, f1])
         self.acc_train = acc
         self.pre_train = pre
         self.rec_train = rec
         self.f1_train = f1
-        
+
     def set_validation_score(self, acc, pre, rec, f1):
+        self.validation_scores.append([acc, pre, rec, f1])
         self.acc_validation = acc
         self.pre_validation = pre
         self.rec_validation = rec
         self.f1_validation = f1
-        
+
     def set_test_score(self, acc, pre, rec, f1):
         self.acc_test = acc
         self.pre_test = pre
@@ -34,14 +46,13 @@ class ConfigLogger:
 
     def describe_model(self, description):
         self.model_description = description
-        
-    def save(self):
 
+    def save(self):
         s = ''
         s = s.join(
             [
                 '=================', ret,
-                '| LOG {}|'.format(self.timestamp), ret,
+                '| LOG {}|'.format(self.timestamp.strftime("%H:%M %d %b")), ret,
                 '=================', ret, ret,
                 'Model:', ret,
                 self.model_description, ret, ret,
@@ -79,11 +90,19 @@ class ConfigLogger:
             ]
         )
 
-        with open("logs/{}.txt".format(self.filename), "w") as text_file:
+        with open(self.curr_path_str + "training_configuration.txt", "w") as text_file:
             print(s, file=text_file)
 
+        with open(self.curr_path_str + "train_scores.csv", "wb") as train_scores_file:
+            np.savetxt(train_scores_file, self.train_scores, delimiter=',', fmt='%s',
+                       header='accuracy, precision, recall, F1-score')
+        with open(self.curr_path_str + "val_scores.csv", "wb") as validation_scores_file:
+            np.savetxt(validation_scores_file, self.validation_scores, delimiter=',', fmt='%s',
+                       header='accuracy, precision, recall, F1-score')
+
     def get_timestamp(self):
-        return self.filename
+        return self.timestamp.strftime("%d-%H_%M_%S")
+
 
 if __name__ == '__main__':
     logger = ConfigLogger()

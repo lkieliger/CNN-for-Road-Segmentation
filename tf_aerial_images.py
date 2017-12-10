@@ -1,16 +1,18 @@
 import sys
 
+import datetime
+
 from config_logger import ConfigLogger
-from helpers.image_helpers import *
+from helpers.plots import *
 from helpers.prediction_helpers import *
 from helpers.data_helpers import *
 from learner import Learner
 from metrics import *
 from model import *
-from plots import *
 from program_constants import *
 
-tf.app.flags.DEFINE_string('train_dir', '/tmp/mnist',
+now = datetime.datetime.now()
+tf.app.flags.DEFINE_string('train_dir', 'tmp/job-{}'.format(now.strftime("%d-%H_%M_%S")),
                            """Directory where to write event logs """
                            """and checkpoint.""")
 FLAGS = tf.app.flags.FLAGS
@@ -115,7 +117,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
         if RESTORE_MODEL:
             # Restore variables from disk.
-            learner.saver.restore(tensorflow_session, FLAGS.train_dir + "/model.ckpt")
+            learner.saver.restore(tensorflow_session, "restore/model.ckpt")
             print("Model restored.")
 
         else:
@@ -216,8 +218,8 @@ def main(argv=None):  # pylint: disable=unused-argument
                 print("\t Model saved in file: %s" % save_path)
 
 
-            plot_accuracy([accuracy_data_training, accuracy_data_validation], logger.get_timestamp())
             logger.save()
+            plot_accuracy([accuracy_data_training, accuracy_data_validation], logger.get_timestamp())
 
             weigths_1 = tensorflow_session.run(learner.cNNModel.conv1_weights)
             plot_conv_weights(weigths_1, logger.get_timestamp())
