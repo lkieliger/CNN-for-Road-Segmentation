@@ -26,7 +26,7 @@ NUM_EPOCHS = 50
 ADAM_INITIAL_LEARNING_RATE = 0.001 # more than 0.01 for custom, 0.001 for base model (maybe even less)
 RESTORE_MODEL = False  # If True, restore existing model instead of training a new one
 RECORDING_STEP = 1000
-USE_DROPOUT = True
+USE_DROPOUT = False
 BALANCE_DATA = False
 DROPOUT_KEEP_RATE = 0.8;
 
@@ -40,6 +40,6 @@ IMG_PATCH_SIZE = 16
 """
 Context margin around the patch to be considered.
 """
-PATCH_CONTEXT_SIZE = 20 #TODO: go to 20 for 3 pooling custom model
+PATCH_CONTEXT_SIZE = 0 #TODO: go to 20 for 3 pooling custom model
 
 EFFECTIVE_INPUT_SIZE = 2 * PATCH_CONTEXT_SIZE + IMG_PATCH_SIZE
