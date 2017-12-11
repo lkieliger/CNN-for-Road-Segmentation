@@ -1,18 +1,22 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from program_constants import *
+import seaborn as sns
+sns.set()
 
 def plot_accuracy(data_list, test_accuracy, timestamp, labels=None):
 
+    colors = [sns.color_palette("colorblind")[0],sns.color_palette("colorblind")[2]]
+
     if labels is None:
-        labels = ["Training", "Validation", "Test"]
+        labels = ["Training", "Validation"]
 
     x = np.array(range(NUM_EPOCHS)) + 1
 
     for i, data in enumerate(data_list):
-        plt.plot(x, data, label=labels[i])
+        plt.plot(x, data, label=labels[i], color=colors[i])
 
-    plt.plot((1, NUM_EPOCHS), (test_accuracy, test_accuracy), 'k--', color='red')
+    plt.plot((1, NUM_EPOCHS), (test_accuracy, test_accuracy), 'k--', color=sns.color_palette("colorblind")[1], label='Test')
 
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")
@@ -41,3 +45,14 @@ def plot_conv_weights(weights, timestamp):
         ax.set_yticks([])
 
     plt.savefig("plots/weights_{}.png".format(timestamp))
+
+if __name__ == '__main__':
+    import seaborn as sns
+
+    sns.set()
+
+    plt.plot((1, NUM_EPOCHS), (0.2, 0.2), '--', color=sns.color_palette("colorblind")[0],label='Test')
+    plt.plot((1, NUM_EPOCHS), (0.4, 0.4), '--', color=sns.color_palette("colorblind")[2], label='Test')
+    plt.plot((1, NUM_EPOCHS), (0.6, 0.6), '--', color=sns.color_palette("colorblind")[1], label='Test')
+
+    plt.show()

@@ -63,8 +63,6 @@ def assess_model(session, learner, data, labels):
 
 def main(argv=None):  # pylint: disable=unused-argument
 
-    data_dir = 'data/training/'
-
     data_train, data_validation, data_test, labels_train, labels_validation, labels_test = read_partitions()
 
     if BALANCE_TRAIN_DATA:
@@ -72,7 +70,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     print("Training data shape: {}".format(data_train.shape))
     print("Validation data shape: {}".format(data_validation.shape))
-    #print("Test data shape: {}".format(data_test.shape))
+    print("Test data shape: {}".format(data_test.shape))
 
     learner = Learner(data_train.shape[0])
 
@@ -82,8 +80,11 @@ def main(argv=None):  # pylint: disable=unused-argument
     logger.describe_model(learner.cNNModel.get_description())
     weigths_1 = []
 
+
     # Create a local session to run this computation.
     with tf.Session() as tensorflow_session:
+        numpy.random.seed(SEED)
+        tf.set_random_seed(SEED)
 
         if RESTORE_MODEL:
             # Restore variables from disk.
@@ -114,6 +115,9 @@ def main(argv=None):  # pylint: disable=unused-argument
                 perm_indices_train = numpy.random.permutation(training_indices)
                 perm_indices_validation = numpy.random.permutation(validation_indices)
 
+                print(perm_indices_validation)
+                print(perm_indices_train)
+
                 # Train on whole dataset, batch by batch
                 for step in range(int(data_train.shape[0] / BATCH_SIZE)):
 
@@ -127,6 +131,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                     # This dictionary maps the batch data (as a numpy array) to the
                     # node in the graph is should be fed to.
                     learner.update_feed_dictionary(batch_data, batch_labels)
+
 
                     # Run the graph and fetch some of the nodes.
                     _, l, predictions, _, _, _, _= tensorflow_session.run(

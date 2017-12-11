@@ -73,7 +73,6 @@ class Learner:
         # Add the regularization term to the loss.
         self.loss += 5e-4 * self.regularizers
 
-        tf.summary.scalar('loss', self.loss)
 
     def _init_metrics(self):
         l_train = tf.argmax(self.labels_node, 1)
@@ -166,25 +165,6 @@ class Learner:
             predictions=p_test,
             name="test"
         )
-
-    def _init_params_summaries(self):
-        all_params_node = [self.cNNModel.conv1_weights, self.cNNModel.conv1_biases,
-                           self.cNNModel.conv2_weights, self.cNNModel.conv2_biases,
-                           self.cNNModel.fc1_weights, self.cNNModel.fc1_biases,
-                           self.cNNModel.fc2_weights, self.cNNModel.fc2_biases]
-
-        all_params_names = ['conv1_weights', 'conv1_biases',
-                            'conv2_weights', 'conv2_biases',
-                            'fc1_weights', 'fc1_biases',
-                            'fc2_weights', 'fc2_biases']
-
-        all_grads_node = tf.gradients(self.loss, all_params_node)
-        all_grad_norms_node = []
-
-        for i in range(0, len(all_grads_node)):
-            norm_grad_i = tf.global_norm([all_grads_node[i]])
-            all_grad_norms_node.append(norm_grad_i)
-            tf.summary.scalar(all_params_names[i], norm_grad_i)
 
     def model(self):
         return self.cNNModel
