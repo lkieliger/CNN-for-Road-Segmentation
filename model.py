@@ -112,13 +112,14 @@ class CustomModel(AbstractModel):
         CONV_DEPTH1 = 64;
         CONV_DEPTH2 = 128;
         CONV_DEPTH3 = 256;
-        TWO_POWER_N_POOL = 2 * 2 * 2 * 2;
-        FC1_SIZE = 256;
+        TWO_POWER_N_POOL = 2 * 2 * 2;
+        FC1_SIZE = 128;
+        FC2_SIZE = 128;
 
-        self.conv1_weights = weight_variable([11, 11, NUM_CHANNELS, CONV_DEPTH1])
+        self.conv1_weights = weight_variable([5, 5, NUM_CHANNELS, CONV_DEPTH1])
         self.conv1_biases = bias_variable([CONV_DEPTH1])
 
-        self.conv2_weights = weight_variable([3, 3, CONV_DEPTH1, CONV_DEPTH2])
+        self.conv2_weights = weight_variable([5, 5, CONV_DEPTH1, CONV_DEPTH2])
         self.conv2_biases = bias_variable([CONV_DEPTH2])
 
         self.conv3_weights = weight_variable([3, 3, CONV_DEPTH2, CONV_DEPTH3])
@@ -135,8 +136,12 @@ class CustomModel(AbstractModel):
         self.fc1_biases = bias_variable([FC1_SIZE])
 
         # Fourth layer FULLY CONNECTED
-        self.fc2_weights = weight_variable([FC1_SIZE, NUM_LABELS])
-        self.fc2_biases = bias_variable([NUM_LABELS])
+        self.fc2_weights = weight_variable([FC1_SIZE, FC2_SIZE])
+        self.fc2_biases = bias_variable([FC2_SIZE])
+
+        #Fifth layer FULLY CONNECTED
+        self.fc3_weights = weight_variable([FC2_SIZE, NUM_LABELS])
+        self.fc3_biases = bias_variable([NUM_LABELS])
 
     def model_func(self):
         # We will replicate the model structure for the training subgraph, as well
@@ -162,12 +167,12 @@ class CustomModel(AbstractModel):
 
             conv3 = conv2d(pool2, self.conv3_weights)
             relu3 = relu(conv3 + self.conv3_biases)
-            pool3 = max_pool_2x2(relu3)
+            #pool3 = max_pool_2x2(relu3)
 
             if USE_DROPOUT and train:
-                pool3 = dropout(pool3)
+                relu3 = dropout(relu3)
 
-            conv4 = conv2d(pool3, self.conv4_weights)
+            conv4 = conv2d(relu3, self.conv4_weights)
             relu4 = relu(conv4 + self.conv4_biases)
             pool4 = max_pool_2x2(relu4)
 
@@ -186,12 +191,14 @@ class CustomModel(AbstractModel):
 
             # Fully connected layer. Note that the '+' operation automatically
             # broadcasts the biases.
-            hidden = relu(tf.matmul(reshape, self.fc1_weights) + self.fc1_biases)
+            hidden1 = relu(tf.matmul(reshape, self.fc1_weights) + self.fc1_biases)
 
             if USE_DROPOUT:
-                hidden = dropout(hidden)
+                hidden1 = dropout(hidden1)
 
-            out = tf.matmul(hidden, self.fc2_weights) + self.fc2_biases
+            hidden2 = relu(tf.matmul(hidden1, self.fc2_weights) + self.fc2_biases)
+
+            out = tf.matmul(hidden2, self.fc3_weights) + self.fc3_biases
 
             return out
 

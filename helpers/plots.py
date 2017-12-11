@@ -2,15 +2,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from program_constants import *
 
-def plot_accuracy(data_list, timestamp, labels=None):
+def plot_accuracy(data_list, test_accuracy, timestamp, labels=None):
 
     if labels is None:
-        labels = ["Training", "Validation"]
+        labels = ["Training", "Validation", "Test"]
 
     x = np.array(range(NUM_EPOCHS)) + 1
 
     for i, data in enumerate(data_list):
         plt.plot(x, data, label=labels[i])
+
+    plt.plot((1, NUM_EPOCHS), (test_accuracy, test_accuracy), 'k--', color='red')
 
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")

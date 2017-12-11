@@ -176,14 +176,14 @@ def split_patches(data, labels):
 
     data_size = data.shape[0]
 
-    if (NUM_IMAGES != TRAINING_SIZE + VALIDATION_SIZE + TEST_SIZE):
-        print("NUM_IMAGES: {} SPLIT COUNT: {}".format(NUM_IMAGES, TRAINING_SIZE + VALIDATION_SIZE + TEST_SIZE))
+    if (NUM_IMAGES != TRAINING_PROP + VALIDATION_PROP + TEST_PROP):
+        print("NUM_IMAGES: {} SPLIT COUNT: {}".format(NUM_IMAGES, TRAINING_PROP + VALIDATION_PROP + TEST_PROP))
         raise Exception("Dataset split count does not match total number of images!")
 
     perm_indices = numpy.random.permutation(range(data_size))
 
-    train_bound = round(data_size * TRAINING_SIZE / NUM_IMAGES)
-    validation_bound = round(data_size * VALIDATION_SIZE / NUM_IMAGES)
+    train_bound = round(data_size * TRAINING_PROP / NUM_IMAGES)
+    validation_bound = round(data_size * VALIDATION_PROP / NUM_IMAGES)
 
     train_indices = perm_indices[0: train_bound]
     validation_indices = perm_indices[train_bound: train_bound + validation_bound]

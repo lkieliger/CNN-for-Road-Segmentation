@@ -15,60 +15,55 @@ from utils.dataset_partitioner import read_partitions
 now = datetime.datetime.now()
 FLAGS = tf.app.flags.FLAGS
 
-def output_training_set_results(session, learner, train_data_filename):
+def output_training_set_results(session, learner):
     print("Running prediction on training set")
     prediction_training_dir = "predictions_training/"
 
-
     if not os.path.isdir(prediction_training_dir):
         os.mkdir(prediction_training_dir)
-    for i in range(1, TRAINING_SIZE + 1):
+
+    for j, filename in enumerate(os.listdir(TRAIN_DATA_IMAGES_PATH)):
+        i = j+1
         #pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
         #Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
-        oimg = get_prediction_with_overlay(train_data_filename, i, learner.cNNModel, session)
+        oimg = get_prediction_with_overlay(TRAIN_DATA_IMAGES_PATH, i, learner.cNNModel, session)
         oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
 
 
-def output_validation_set_results(session, learner, train_data_filename):
-    print("Running prediction on validation set")
-    prediction_training_dir = "predictions_training/"
-    if not os.path.isdir(prediction_training_dir):
-        os.mkdir(prediction_training_dir)
-    for i in range(TRAINING_SIZE, TRAINING_SIZE + VALIDATION_SIZE + 1):
-        #pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
-        #Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
-        oimg = get_prediction_with_overlay(train_data_filename, i, learner.cNNModel, session)
-        oimg.save(prediction_training_dir + "overlay_val_" + str(i) + ".png")
+
+def assess_model(session, learner, data, labels):
+
+    data_indices = range(data.shape[0])
+
+    # Feed test data to the model batch by batch and compute running statistics
+    for i in range(0, data.shape[0], BATCH_SIZE):
+        batch_indices = data_indices[i: i + BATCH_SIZE]
+        batch_data = data[batch_indices]
+        batch_labels = labels[batch_indices]
+
+        learner.update_feed_dictionary(batch_data, batch_labels)
+
+        # Run the graph and fetch some of the nodes.
+        predictions, _, _, _, _ = session.run(
+            learner.get_test_ops() + learner.get_test_metric_update_ops(),
+            feed_dict=learner.get_feed_dictionnary())
+
+    # Evaluate the final test statistics
+    tp, fp, tn, fn = session.run(learner.get_test_metric_ops())
+    acc = accuracy(tp, fp, tn, fn)
+    pre = precision(tp, fp)
+    rec = recall(tp, fn)
+    f1s = f1_score(tp, fp, fn)
+    print("\t [ TEST REPORT ]")
+    print("\t F1: {:.2%}, Accuracy: {:.2%}, Precision: {:.2%}, Recall: {:.2%}".format(f1s, acc, pre, rec))
+    print("\t TP: {}, TN: {}, FP: {}, FN: {} \n".format(tp, tn, fp, fn))
+
+    return f1s, acc, pre, rec
+
 
 def main(argv=None):  # pylint: disable=unused-argument
 
     data_dir = 'data/training/'
-    train_data_filename = data_dir + 'images/'
-    train_labels_filename = data_dir + 'groundtruth/'
-
-    permutations = np.random.permutation(range(NUM_IMAGES))
-
-    # Extract it into numpy arrays.
-    #data = extract_data(train_data_filename, permutations)
-    #labels = extract_labels(train_labels_filename, permutations)
-
-    #print("Data shape: {}".format(data.shape))
-
-
-    # Shuffling test data
-    #np.random.seed(SEED)
-    #shuffling_indices = np.random.permutation(range(data.shape[0]))
-    #data = data[shuffling_indices, :, :, :]
-    #labels = labels[shuffling_indices]
-
-
-    # Split data
-    #data_train, data_validation, data_test, labels_train, labels_validation, labels_test = split_patches(data, labels)
-
-    #data_train = extract_all_data(TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH)
-    #labels_train = extract_all_labels(TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH)
-    #data_validation = extract_all_data(TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH)
-    #labels_validation = extract_all_labels(TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH)
 
     data_train, data_validation, data_test, labels_train, labels_validation, labels_test = read_partitions()
 
@@ -192,9 +187,12 @@ def main(argv=None):  # pylint: disable=unused-argument
                 save_path = learner.saver.save(tensorflow_session, "models/model.ckpt")
                 print("\t Model saved in file: %s" % save_path)
 
+            # Compute stats on test set
+            f1s, acc, pre, rec = assess_model(tensorflow_session, learner, data_test, labels_test)
+            logger.set_test_score(acc, pre, rec, f1s)
 
             logger.save()
-            plot_accuracy([accuracy_data_training, accuracy_data_validation], logger.get_timestamp())
+            plot_accuracy([accuracy_data_training, accuracy_data_validation], acc, logger.get_timestamp())
 
             weigths_1 = tensorflow_session.run(learner.cNNModel.conv1_weights)
             plot_conv_weights(weigths_1, logger.get_timestamp())
@@ -203,8 +201,7 @@ def main(argv=None):  # pylint: disable=unused-argument
         print("=============================================================")
         print("")
 
-        output_training_set_results(tensorflow_session, learner, train_data_filename)
-        output_validation_set_results(tensorflow_session, learner, train_data_filename)
+        output_training_set_results(tensorflow_session, learner)
 
 
 

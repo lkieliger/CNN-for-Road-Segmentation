@@ -90,17 +90,18 @@ def partition_patches(train_prop, val_prop, test_prop):
     np.save(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH + FILENAME, labels[indices_test])
 
 
-def read_partitions():
-    d_tr = np.load(TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH + FILENAME)
-    l_tr = np.load(TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH + FILENAME)
+def read_partitions(prefix=''):
+    d_tr = np.load(prefix + TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH + FILENAME)
+    l_tr = np.load(prefix + TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH + FILENAME)
 
-    d_val = np.load(TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH + FILENAME)
-    l_val = np.load(TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH + FILENAME)
+    d_val = np.load(prefix + TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH + FILENAME)
+    l_val = np.load(prefix + TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH + FILENAME)
 
-    d_te = np.load(TRAIN_DATA_TEST_SPLIT_IMAGES_PATH + FILENAME)
-    l_te = np.load(TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH + FILENAME)
+    d_te = np.load(prefix + TRAIN_DATA_TEST_SPLIT_IMAGES_PATH + FILENAME)
+    l_te = np.load(prefix + TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH + FILENAME)
 
     return d_tr, d_val, d_te, l_tr, l_val, l_te
 
 if __name__ == '__main__':
-    partition_patches(.8, .2, .0)
+    partition_patches(.7, .15, .15)
+    #read_partitions(PATH_PREFIX)

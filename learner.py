@@ -36,10 +36,9 @@ class Learner:
         # training step using the {feed_dict} argument to the Run() call below.
         self.data_node = tf.placeholder(
             tf.float32,
-            shape=(BATCH_SIZE, EFFECTIVE_INPUT_SIZE, EFFECTIVE_INPUT_SIZE, NUM_CHANNELS))
+            shape=(None, EFFECTIVE_INPUT_SIZE, EFFECTIVE_INPUT_SIZE, NUM_CHANNELS))
         self.labels_node = tf.placeholder(tf.float32,
-                                          shape=(BATCH_SIZE, NUM_LABELS))
-        #self.train_all_data_node = tf.constant(self.train_data)
+                                          shape=(None, NUM_LABELS))
 
     def _init_regularizer(self):
         # L2 regularization for the fully connected parameters.
@@ -56,12 +55,14 @@ class Learner:
         self.optimizer = tf.train.AdamOptimizer(ADAM_INITIAL_LEARNING_RATE).minimize(self.loss, global_step=self.batch)
 
     def _init_predictions(self):
-        self.logits = self.cNNModel.model_func()(self.data_node, True)  # BATCH_SIZE*NUM_LABELS
-        self.logits_validation = self.cNNModel.model_func()(self.data_node, False)  # BATCH_SIZE*NUM_LABELS
+        self.logits = self.cNNModel.model_func()(self.data_node, True)
+        self.logits_validation = self.cNNModel.model_func()(self.data_node, False)
+        self.logits_test = self.cNNModel.model_func()(self.data_node, False)
 
         # Predictions for the minibatch, validation set and test set.
         self.train_predictions = tf.nn.softmax(self.logits)
         self.validation_predictions = tf.nn.softmax(self.logits_validation)
+        self.test_predictions = tf.nn.softmax(self.logits_test)
 
 
     def _init_loss(self):
@@ -80,6 +81,9 @@ class Learner:
 
         l_validation = tf.argmax(self.labels_node, 1)
         p_validation = tf.argmax(self.validation_predictions, 1)
+
+        l_test = tf.argmax(self.labels_node, 1)
+        p_test = tf.argmax(self.validation_predictions, 1)
 
         """
         TRAINING METRICS
@@ -134,6 +138,34 @@ class Learner:
             predictions=p_validation,
             name="validation"
         )
+        
+        
+        """
+        TEST METRICS
+        """
+        self.true_test_pos, self.true_test_pos_op = tf.contrib.metrics.streaming_true_positives(
+            labels=l_test,
+            predictions=p_test,
+            name="test"
+        )
+
+        self.false_test_pos, self.false_test_pos_op = tf.contrib.metrics.streaming_false_positives(
+            labels=l_test,
+            predictions=p_test,
+            name="test"
+        )
+
+        self.true_test_neg, self.true_test_neg_op = tf.contrib.metrics.streaming_true_negatives(
+            labels=l_test,
+            predictions=p_test,
+            name="test"
+        )
+
+        self.false_test_neg, self.false_test_neg_op = tf.contrib.metrics.streaming_false_negatives(
+            labels=l_test,
+            predictions=p_test,
+            name="test"
+        )
 
     def _init_params_summaries(self):
         all_params_node = [self.cNNModel.conv1_weights, self.cNNModel.conv1_biases,
@@ -153,6 +185,9 @@ class Learner:
             norm_grad_i = tf.global_norm([all_grads_node[i]])
             all_grad_norms_node.append(norm_grad_i)
             tf.summary.scalar(all_params_names[i], norm_grad_i)
+
+    def model(self):
+        return self.cNNModel
 
     def update_feed_dictionary(self, batch_data, batch_labels):
         self.feed_dictionary = {
@@ -184,3 +219,14 @@ class Learner:
     def get_validation_metric_update_ops(self):
         return [self.true_validation_pos_op, self.false_validation_pos_op, 
                 self.true_validation_neg_op, self.false_validation_neg_op]
+    
+    def get_test_ops(self):
+        return [self.test_predictions]
+
+    def get_test_metric_ops(self):
+        return [self.true_test_pos, self.false_test_pos, 
+                self.true_test_neg, self.false_test_neg]
+
+    def get_test_metric_update_ops(self):
+        return [self.true_test_pos_op, self.false_test_pos_op, 
+                self.true_test_neg_op, self.false_test_neg_op]
