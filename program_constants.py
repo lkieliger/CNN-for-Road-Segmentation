@@ -25,8 +25,10 @@ NUM_EPOCHS = 50
 ADAM_INITIAL_LEARNING_RATE = 0.001 # more than 0.01 for custom, 0.001 for base model (maybe even less)
 RESTORE_MODEL = False  # If True, restore existing model instead of training a new one
 USE_DROPOUT = False
+USE_L2_REGULARIZATION = True
+USE_LEAKY_RELU = False
 BALANCE_TRAIN_DATA = False
-DROPOUT_KEEP_RATE = 0.75;
+DROPOUT_KEEP_RATE = 0.5
 
 # Set image patch size in pixels
 # IMG_PATCH_SIZE should be a multiple of 4
@@ -38,6 +40,6 @@ IMG_PATCH_SIZE = 16
 """
 Context margin around the patch to be considered.
 """
-PATCH_CONTEXT_SIZE = 0 #TODO: go to 20 for 3 pooling custom model
+PATCH_CONTEXT_SIZE = 8 #TODO: go to 20 for 3 pooling custom model
 
 EFFECTIVE_INPUT_SIZE = 2 * PATCH_CONTEXT_SIZE + IMG_PATCH_SIZE

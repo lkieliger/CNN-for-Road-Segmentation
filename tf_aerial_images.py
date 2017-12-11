@@ -115,8 +115,6 @@ def main(argv=None):  # pylint: disable=unused-argument
                 perm_indices_train = numpy.random.permutation(training_indices)
                 perm_indices_validation = numpy.random.permutation(validation_indices)
 
-                print(perm_indices_validation)
-                print(perm_indices_train)
 
                 # Train on whole dataset, batch by batch
                 for step in range(int(data_train.shape[0] / BATCH_SIZE)):
@@ -138,7 +136,6 @@ def main(argv=None):  # pylint: disable=unused-argument
                         learner.get_train_ops() + learner.get_train_metric_update_ops(),
                         feed_dict=learner.get_feed_dictionnary())
 
-                    #print_predictions(predictions, batch_labels)
 
                 # Assess performance by running on validation dataset, batch by batch
                 for step in range(int(data_validation.shape[0] / BATCH_SIZE)):

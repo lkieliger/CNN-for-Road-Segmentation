@@ -10,7 +10,7 @@ class Learner:
         self._init_learner()
 
     def _init_learner(self):
-        self.cNNModel = BaselineModel()
+        self.cNNModel = CustomModel()
 
         self._init_nodes()
         self._init_predictions()
@@ -31,9 +31,6 @@ class Learner:
 
 
     def _init_nodes(self):
-        # This is where training samples and labels are fed to the graph.
-        # These placeholder nodes will be fed a batch of training data at each
-        # training step using the {feed_dict} argument to the Run() call below.
         self.data_node = tf.placeholder(
             tf.float32,
             shape=(None, EFFECTIVE_INPUT_SIZE, EFFECTIVE_INPUT_SIZE, NUM_CHANNELS))
@@ -43,7 +40,8 @@ class Learner:
     def _init_regularizer(self):
         # L2 regularization for the fully connected parameters.
         self.regularizers = (tf.nn.l2_loss(self.cNNModel.fc1_weights) + tf.nn.l2_loss(self.cNNModel.fc1_biases) +
-                             tf.nn.l2_loss(self.cNNModel.fc2_weights) + tf.nn.l2_loss(self.cNNModel.fc2_biases))
+                             tf.nn.l2_loss(self.cNNModel.fc2_weights) + tf.nn.l2_loss(self.cNNModel.fc2_biases) +
+                             tf.nn.l2_loss(self.cNNModel.fc3_weights) + tf.nn.l2_loss(self.cNNModel.fc3_biases) )
 
     def _init_learning_rate(self):
         # Optimizer: set up a variable that's incremented once per batch and
@@ -71,7 +69,8 @@ class Learner:
             logits=self.logits, labels=self.labels_node))
 
         # Add the regularization term to the loss.
-        self.loss += 5e-4 * self.regularizers
+        if USE_L2_REGULARIZATION:
+            self.loss += 5e-4 * self.regularizers
 
 
     def _init_metrics(self):

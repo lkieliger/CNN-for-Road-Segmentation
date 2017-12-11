@@ -23,7 +23,11 @@ def max_pool_2x2(x):
 
 
 def relu(x):
-    return tf.nn.relu(x)
+
+    if USE_LEAKY_RELU:
+        return tf.nn.leaky_relu(x)
+    else:
+        return tf.nn.relu(x)
 
 
 def dropout(x):
@@ -156,28 +160,28 @@ class CustomModel(AbstractModel):
             pool1 = max_pool_2x2(relu1)
 
             if USE_DROPOUT and train:
-                pool1 = dropout(pool1);
+                pass#pool1 = dropout(pool1);
 
             conv2 = conv2d(pool1, self.conv2_weights)
             relu2 = relu(conv2 + self.conv2_biases)
             pool2 = max_pool_2x2(relu2)
 
             if USE_DROPOUT and train:
-                pool2 = dropout(pool2);
+                pass#pool2 = dropout(pool2);
 
             conv3 = conv2d(pool2, self.conv3_weights)
             relu3 = relu(conv3 + self.conv3_biases)
             #pool3 = max_pool_2x2(relu3)
 
             if USE_DROPOUT and train:
-                relu3 = dropout(relu3)
+                pass#relu3 = dropout(relu3)
 
             conv4 = conv2d(relu3, self.conv4_weights)
             relu4 = relu(conv4 + self.conv4_biases)
             pool4 = max_pool_2x2(relu4)
 
             if USE_DROPOUT and train:
-                pool4 = dropout(pool4);
+                pass#pool4 = dropout(pool4);
 
 
             # Reshape the feature map cuboid into a 2D matrix to feed it to the
@@ -197,6 +201,9 @@ class CustomModel(AbstractModel):
                 hidden1 = dropout(hidden1)
 
             hidden2 = relu(tf.matmul(hidden1, self.fc2_weights) + self.fc2_biases)
+
+            if USE_DROPOUT:
+                hidden2 = dropout(hidden2)
 
             out = tf.matmul(hidden2, self.fc3_weights) + self.fc3_biases
 
