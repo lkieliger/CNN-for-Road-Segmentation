@@ -5,7 +5,7 @@ import tensorflow as tf
 import matplotlib.image as mpimg
 
 
-def img_crop(im, w, h, is_2d=False):
+def img_crop(im, w, h, is_2d=False, patch_context_override=-1):
     """
     Extract patches from an image
     
@@ -15,15 +15,19 @@ def img_crop(im, w, h, is_2d=False):
     :return: A list containing all the extracted patches in row order
     """
 
+    patch_context_size = PATCH_CONTEXT_SIZE
+    if patch_context_override != -1:
+        patch_context_size = patch_context_override
+
     list_patches = []
     imgwidth = im.shape[0]
     imgheight = im.shape[1]
 
     # If context is enabled, reflect the image at the edge
-    if PATCH_CONTEXT_SIZE > 0 and not is_2d:
+    if patch_context_size > 0 and not is_2d:
         im = np.pad(im, (
-            (PATCH_CONTEXT_SIZE, PATCH_CONTEXT_SIZE),
-            (PATCH_CONTEXT_SIZE, PATCH_CONTEXT_SIZE),
+            (patch_context_size, patch_context_size),
+            (patch_context_size, patch_context_size),
             (0, 0)), mode='reflect')
 
     for i in range(0, imgheight, h):
@@ -31,7 +35,7 @@ def img_crop(im, w, h, is_2d=False):
             if is_2d:
                 im_patch = im[j:j + w, i:i + h]
             else:
-                im_patch = im[j:j + w + 2 * PATCH_CONTEXT_SIZE, i:i + h + 2 * PATCH_CONTEXT_SIZE, :]
+                im_patch = im[j:j + w + 2 * patch_context_size, i:i + h + 2 * patch_context_size, :]
             list_patches.append(im_patch)
 
     return list_patches
