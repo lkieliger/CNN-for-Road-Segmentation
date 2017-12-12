@@ -103,5 +103,5 @@ def read_partitions(prefix=''):
     return d_tr, d_val, d_te, l_tr, l_val, l_te
 
 if __name__ == '__main__':
-    partition_patches(.7, .15, .15)
+    partition_patches(TRAINING_PROP, VALIDATION_PROP, TEST_PROP)
     #read_partitions(PATH_PREFIX)

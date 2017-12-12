@@ -63,23 +63,24 @@ def assess_model(session, learner, data, labels):
 
 def main(argv=None):  # pylint: disable=unused-argument
 
-    data_train, data_validation, data_test, labels_train, labels_validation, labels_test = read_partitions()
+    learner = Learner()
 
-    if BALANCE_TRAIN_DATA:
-        data_train, labels_train = balance_dataset(data_train, labels_train)
+    if not RESTORE_MODEL:
+        data_train, data_validation, data_test, labels_train, labels_validation, labels_test = read_partitions()
 
-    print("Training data shape: {}".format(data_train.shape))
-    print("Validation data shape: {}".format(data_validation.shape))
-    print("Test data shape: {}".format(data_test.shape))
+        if BALANCE_TRAIN_DATA:
+            data_train, labels_train = balance_dataset(data_train, labels_train)
 
-    learner = Learner(data_train.shape[0])
+        print("Training data shape: {}".format(data_train.shape))
+        print("Validation data shape: {}".format(data_validation.shape))
+        print("Test data shape: {}".format(data_test.shape))
 
-    accuracy_data_training = []
-    accuracy_data_validation = []
-    logger = ConfigLogger()
-    logger.describe_model(learner.cNNModel.get_description())
-    weigths_1 = []
 
+        accuracy_data_training = []
+        accuracy_data_validation = []
+        logger = ConfigLogger()
+        logger.describe_model(learner.cNNModel.get_description())
+        weigths_1 = []
 
     # Create a local session to run this computation.
     with tf.Session() as tensorflow_session:

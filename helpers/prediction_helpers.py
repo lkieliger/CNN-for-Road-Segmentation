@@ -92,7 +92,7 @@ def get_prediction_with_groundtruth(filename, image_idx, convolutional_model: Ba
     return cimg
 
 
-def get_prediction_with_overlay(filename, image_idx, convolutional_model: BaselineModel, tensorflow_session: tf.Session):
+def get_prediction_with_overlay(filename, imagename, convolutional_model: BaselineModel, tensorflow_session: tf.Session):
     """
     Get the original image with the predictions overlaid on top of it
     
@@ -104,9 +104,7 @@ def get_prediction_with_overlay(filename, image_idx, convolutional_model: Baseli
     :return: The original image with its predictions overlaid
     """
 
-    imageid = "satImage_%.3d" % image_idx
-    image_filename = filename + imageid + ".png"
-    img = mpimg.imread(image_filename)
+    img = mpimg.imread(filename+imagename)
     img_prediction = get_prediction(img, convolutional_model, tensorflow_session)
     oimg = make_img_overlay(img, img_prediction)
 

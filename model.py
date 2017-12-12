@@ -30,8 +30,8 @@ def relu(x):
         return tf.nn.relu(x)
 
 
-def dropout(x):
-    return tf.nn.dropout(x, DROPOUT_KEEP_RATE, seed=SEED)
+def dropout(x, keep_rate=DROPOUT_KEEP_RATE):
+    return tf.nn.dropout(x, keep_rate, seed=SEED)
 
 
 class AbstractModel:
@@ -160,7 +160,7 @@ class CustomModel(AbstractModel):
             pool1 = max_pool_2x2(relu1)
 
             if USE_DROPOUT and train:
-                pass#pool1 = dropout(pool1);
+                pool1 = dropout(pool1);
 
             conv2 = conv2d(pool1, self.conv2_weights)
             relu2 = relu(conv2 + self.conv2_biases)
@@ -174,14 +174,14 @@ class CustomModel(AbstractModel):
             #pool3 = max_pool_2x2(relu3)
 
             if USE_DROPOUT and train:
-                pass#relu3 = dropout(relu3)
+                relu3 = dropout(relu3)
 
             conv4 = conv2d(relu3, self.conv4_weights)
             relu4 = relu(conv4 + self.conv4_biases)
             pool4 = max_pool_2x2(relu4)
 
             if USE_DROPOUT and train:
-                pass#pool4 = dropout(pool4);
+                pool4 = dropout(pool4);
 
 
             # Reshape the feature map cuboid into a 2D matrix to feed it to the
@@ -197,13 +197,13 @@ class CustomModel(AbstractModel):
             # broadcasts the biases.
             hidden1 = relu(tf.matmul(reshape, self.fc1_weights) + self.fc1_biases)
 
-            if USE_DROPOUT:
-                hidden1 = dropout(hidden1)
+            if USE_DROPOUT and train:
+                hidden1 = dropout(hidden1, 0.8)
 
             hidden2 = relu(tf.matmul(hidden1, self.fc2_weights) + self.fc2_biases)
 
-            if USE_DROPOUT:
-                hidden2 = dropout(hidden2)
+            if USE_DROPOUT and train:
+                hidden2 = dropout(hidden2, 0.8)
 
             out = tf.matmul(hidden2, self.fc3_weights) + self.fc3_biases
 
