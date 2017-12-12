@@ -99,15 +99,23 @@ def main():
     Z = logreg.predict(X_poly)
 
     # Get non-zeros in prediction and grountruth arrays
-    Zn = np.nonzero(Z)[0]
-    Yn = np.nonzero(Y)[0]
+    Z_true = np.nonzero(Z)[0]
+    Z_false = np.nonzero(Z - 1)[0]
+    Y_true = np.nonzero(Y)[0]
+    Y_false = np.nonzero(Y - 1)[0]
 
-    precision = len(list(set(Yn) & set(Zn))) / float(len(Z))
-    recall = len(list(set(Yn) & set(Zn))) / float(len(Yn))
+    true_positive = len(list(set(Y_true) & set(Z_true)))
+    false_positive = len(list(set(Y_false) & set(Z_true)))
+    true_negative = len(list(set(Y_false) & set(Z_false)))
+    false_negative = len(list(set(Y_true) & set(Z_false)))
+    recall = true_positive / float(len(Y_true))
+    precision = true_positive / float(true_positive + false_positive)
+    accuracy = float(true_positive + true_negative) / \
+                float(true_negative + true_positive + false_positive + false_negative)
 
     f1s = 2 * (precision * recall) / (precision + recall)
     print('Precision = ' + str(precision) + "\tRecall = " + str(recall))
-    print('F1 score: ' + str(f1s))
+    print('F1 score: ' + str(f1s) + "\tAccuracy: " + str(accuracy))
 
 
 if __name__ == '__main__':
