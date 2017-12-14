@@ -38,9 +38,7 @@ class Learner:
 
     def _init_regularizer(self):
         # L2 regularization for the fully connected parameters.
-        self.regularizers = (tf.nn.l2_loss(self.cNNModel.fc1_weights) + tf.nn.l2_loss(self.cNNModel.fc1_biases) +
-                             tf.nn.l2_loss(self.cNNModel.fc2_weights) + tf.nn.l2_loss(self.cNNModel.fc2_biases))# +
-                             #tf.nn.l2_loss(self.cNNModel.fc3_weights) + tf.nn.l2_loss(self.cNNModel.fc3_biases) )
+        self.regularizers = self.cNNModel.get_weights()
 
     def _init_learning_rate(self):
         # Optimizer: set up a variable that's incremented once per batch and

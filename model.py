@@ -64,6 +64,9 @@ class BaselineModel(AbstractModel):
         self.fc2_weights = weight_variable([512, NUM_LABELS])
         self.fc2_biases = bias_variable([NUM_LABELS])
 
+    def get_weights(self):
+        return (tf.nn.l2_loss(self.fc1_weights) + tf.nn.l2_loss(self.fc2_weights))
+
     def model_func(self):
         # We will replicate the model structure for the training subgraph, as well
         # as the evaluation subgraphs, while sharing the trainable parameters.
@@ -120,10 +123,10 @@ class CustomModel(AbstractModel):
         FC1_SIZE = 128;
         FC2_SIZE = 128;
 
-        self.conv1_weights = weight_variable([5, 5, NUM_CHANNELS, CONV_DEPTH1])
+        self.conv1_weights = weight_variable([3, 3, NUM_CHANNELS, CONV_DEPTH1])
         self.conv1_biases = bias_variable([CONV_DEPTH1])
 
-        self.conv2_weights = weight_variable([5, 5, CONV_DEPTH1, CONV_DEPTH2])
+        self.conv2_weights = weight_variable([3, 3, CONV_DEPTH1, CONV_DEPTH2])
         self.conv2_biases = bias_variable([CONV_DEPTH2])
 
         self.conv3_weights = weight_variable([3, 3, CONV_DEPTH2, CONV_DEPTH3])
@@ -147,6 +150,9 @@ class CustomModel(AbstractModel):
         self.fc3_weights = weight_variable([FC2_SIZE, NUM_LABELS])
         self.fc3_biases = bias_variable([NUM_LABELS])
 
+    def get_weights(self):
+        return (tf.nn.l2_loss(self.fc1_weights) + tf.nn.l2_loss(self.fc2_weights) + tf.nn.l2_loss(self.fc3_weights))
+
     def model_func(self):
         # We will replicate the model structure for the training subgraph, as well
         # as the evaluation subgraphs, while sharing the trainable parameters.
@@ -167,7 +173,7 @@ class CustomModel(AbstractModel):
             pool2 = max_pool_2x2(relu2)
 
             if USE_DROPOUT and train:
-                pass#pool2 = dropout(pool2);
+                pool2 = dropout(pool2);
 
             conv3 = conv2d(pool2, self.conv3_weights)
             relu3 = relu(conv3 + self.conv3_biases)
