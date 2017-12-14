@@ -2,6 +2,7 @@
 
 from sklearn import linear_model
 from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import KFold
 
 import matplotlib.pyplot as plt
 import os, sys
@@ -66,38 +67,7 @@ def value_to_class(v):
         return 0
 
 
-def main():
-    img_patches, gt_patches = load_images()
-
-    X = np.asarray([extract_features(img_patches[i]) for i in range(len(img_patches))])
-    Y = np.asarray([value_to_class(np.mean(gt_patches[i])) for i in range(len(gt_patches))])
-
-    # Print feature statistics
-    print('Computed ' + str(X.shape[0]) + ' features')
-    print('Feature dimension = ' + str(X.shape[1]))
-    print('Number of classes = ' + str(np.max(Y)))
-
-    Y0 = [i for i, j in enumerate(Y) if j == 0]
-    Y1 = [i for i, j in enumerate(Y) if j == 1]
-    print('Class 0: ' + str(len(Y0)) + ' samples')
-    print('Class 1: ' + str(len(Y1)) + ' samples')
-
-    # Display a patch that belongs to the foreground class
-    plt.imshow(gt_patches[Y1[6]], cmap='Greys_r')
-
-    # train a logistic regression classifier
-
-    # we create an instance of the classifier and fit the data
-    logreg = linear_model.LogisticRegression(C=1e5, class_weight='balanced')
-    polynomial = PolynomialFeatures(4, interaction_only=False)
-    X_poly = polynomial.fit_transform(X)
-    print("Training logisitic regression")
-    logreg.fit(X_poly, Y)
-
-    print("Predicting logisitic regression")
-    # Predict on the training set
-    Z = logreg.predict(X_poly)
-
+def compute_scores(Z, Y):
     # Get non-zeros in prediction and grountruth arrays
     Z_true = np.nonzero(Z)[0]
     Z_false = np.nonzero(Z - 1)[0]
@@ -111,11 +81,62 @@ def main():
     recall = true_positive / float(len(Y_true))
     precision = true_positive / float(true_positive + false_positive)
     accuracy = float(true_positive + true_negative) / \
-                float(true_negative + true_positive + false_positive + false_negative)
+               float(true_negative + true_positive + false_positive + false_negative)
 
     f1s = 2 * (precision * recall) / (precision + recall)
-    print('Precision = ' + str(precision) + "\tRecall = " + str(recall))
-    print('F1 score: ' + str(f1s) + "\tAccuracy: " + str(accuracy))
+    return accuracy, f1s
+
+
+def main():
+    img_patches, gt_patches = load_images()
+
+    X = np.asarray([extract_features(img_patches[i]) for i in range(len(img_patches))])
+    Y = np.asarray([value_to_class(np.mean(gt_patches[i])) for i in range(len(gt_patches))])
+
+    # Print feature statistics
+    print('Computed ' + str(X.shape[0]) + ' features')
+    print('Feature dimension = ' + str(X.shape[1]))
+    print('Number of classes = ' + str(np.max(Y)))
+    Y0 = [i for i, j in enumerate(Y) if j == 0]
+    Y1 = [i for i, j in enumerate(Y) if j == 1]
+    print('Class 0: ' + str(len(Y0)) + ' samples. Percentage: ' + str(float(len(Y0)) / float(len(Y))))
+    print('Class 1: ' + str(len(Y1)) + ' samples. Percentage: ' + str(float(len(Y1)) / float(len(Y))))
+
+    k = 0
+    kf = KFold(n_splits=4)
+    test_f1s = []
+    test_accuracy = []
+    for train_index, test_index in kf.split(X):
+        X_train = X[train_index]
+        X_test = X[train_index]
+        Y_train = Y[train_index]
+        Y_test = Y[test_index]
+
+        # train a logistic regression classifier
+        # we create an instance of the classifier and fit the data
+        logreg = linear_model.LogisticRegression(C=1e5, class_weight='balanced')
+        polynomial = PolynomialFeatures(4, interaction_only=False)
+        X_train_poly = polynomial.fit_transform(X_train)
+        X_test_poly = polynomial.fit_transform(X_test)
+        print("Training logisitic regression")
+        logreg.fit(X_train_poly, Y_train)
+
+        print("Predicting logisitic regression for train and test parts:")
+        # Predict on the training set
+        Z_train = logreg.predict(X_train_poly)
+        Z_test = logreg.predict(X_test_poly)
+
+        accuracy, f1s = compute_scores(Z_train, Y_train)
+        print('TRAIN:\tk={}.\tF1 score: {}\tAccuracy: {}'.format(k, f1s, accuracy))
+        accuracy, f1s = compute_scores(Z_test, Y_test)
+        print('TEST:\tk={}.\tF1 score: {}\tAccuracy: {}'.format(k, f1s, accuracy))
+
+        k += 1
+        test_f1s.append(f1s)
+        test_accuracy.append(accuracy)
+
+    print("After {}-folds cross-validation, we have \nACCURACY: {} mean, {} std\nF1S: {} mean, {} std".
+          format(k, np.mean(test_accuracy), np.std(test_accuracy), np.mean(test_f1s), np.std(test_f1s)))
 
 
 if __name__ == '__main__':

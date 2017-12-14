@@ -15,6 +15,7 @@ from utils.dataset_partitioner import read_partitions
 now = datetime.datetime.now()
 FLAGS = tf.app.flags.FLAGS
 
+
 def output_training_set_results(session, learner):
     print("Running prediction on training set")
     prediction_training_dir = "predictions_training/"
@@ -23,16 +24,14 @@ def output_training_set_results(session, learner):
         os.mkdir(prediction_training_dir)
 
     for j, filename in enumerate(os.listdir(TRAIN_DATA_IMAGES_PATH)):
-        i = j+1
-        #pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
-        #Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
+        i = j + 1
+        # pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
+        # Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
         oimg = get_prediction_with_overlay(TRAIN_DATA_IMAGES_PATH, i, learner.cNNModel, session)
         oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
 
 
-
 def assess_model(session, learner, data, labels):
-
     data_indices = range(data.shape[0])
 
     # Feed test data to the model batch by batch and compute running statistics
@@ -74,7 +73,6 @@ def main(argv=None):  # pylint: disable=unused-argument
     print("Validation data shape: {}".format(data_validation.shape))
     print("Test data shape: {}".format(data_test.shape))
 
-
     accuracy_data_training = []
     accuracy_data_validation = []
     logger = ConfigLogger()
@@ -114,10 +112,8 @@ def main(argv=None):  # pylint: disable=unused-argument
             perm_indices_train = numpy.random.permutation(training_indices)
             perm_indices_validation = numpy.random.permutation(validation_indices)
 
-
             # Train on whole dataset, batch by batch
             for step in range(int(data_train.shape[0] / BATCH_SIZE)):
-
                 offset = (step * BATCH_SIZE) % (data_train.shape[0] - BATCH_SIZE)
                 batch_indices = perm_indices_train[offset:(offset + BATCH_SIZE)]
 
@@ -129,12 +125,10 @@ def main(argv=None):  # pylint: disable=unused-argument
                 # node in the graph is should be fed to.
                 learner.update_feed_dictionary(batch_data, batch_labels)
 
-
                 # Run the graph and fetch some of the nodes.
-                _, l, predictions, _, _, _, _= tensorflow_session.run(
+                _, l, predictions, _, _, _, _ = tensorflow_session.run(
                     learner.get_train_ops() + learner.get_train_metric_update_ops(),
                     feed_dict=learner.get_feed_dictionnary())
-
 
             # Assess performance by running on validation dataset, batch by batch
             for step in range(int(data_validation.shape[0] / BATCH_SIZE)):
@@ -150,7 +144,6 @@ def main(argv=None):  # pylint: disable=unused-argument
                 predictions, _, _, _, _ = tensorflow_session.run(
                     learner.get_validation_ops() + learner.get_validation_metric_update_ops(),
                     feed_dict=learner.get_feed_dictionnary())
-
 
             """
             TRAINING REPORT
@@ -203,8 +196,6 @@ def main(argv=None):  # pylint: disable=unused-argument
         print("")
 
         output_training_set_results(tensorflow_session, learner)
-
-
 
 
 if __name__ == '__main__':
