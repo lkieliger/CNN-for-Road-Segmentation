@@ -100,7 +100,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
         if RESTORE_MODEL:
             # Restore variables from disk.
-            learner.saver.restore(tensorflow_session, "restore/master_model.ckpt")
+            learner.saver.restore(tensorflow_session, "restore/master_150_model.ckpt")
             print("Model restored.")
 
         for iepoch in range(NUM_EPOCHS):
