@@ -8,6 +8,7 @@ from helpers.image_helpers import img_float_to_uint8
 from helpers.prediction_helpers import get_prediction_with_overlay, get_prediction
 from learner import Learner
 from program_constants import *
+from tf_aerial_images import output_training_set_results
 
 
 def apply_on_dataset(session, learner, path):
@@ -18,9 +19,6 @@ def apply_on_dataset(session, learner, path):
         os.mkdir(prediction_training_dir)
 
     for j, filename in enumerate(os.listdir(path)):
-        i = j+1
-        #pimg = get_prediction_with_groundtruth(train_data_filename, i, learner.cNNModel, session)
-        #Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
         img = mpimg.imread(path + filename)
         oimg = get_prediction(img, learner.cNNModel, session)
         oimg = img_float_to_uint8( 1 - oimg)
@@ -30,6 +28,7 @@ if __name__ == '__main__':
 
     learner = Learner()
 
+    #tf.reset_default_graph()
     # Create a local session to run this computation.
     with tf.Session() as tensorflow_session:
         np.random.seed(SEED)
@@ -37,7 +36,8 @@ if __name__ == '__main__':
 
 
         # Restore variables from disk.
-        learner.saver.restore(tensorflow_session, "restore/master_152_model.ckpt")
+        learner.saver.restore(tensorflow_session, "restore/cnnb16da_model.ckpt")
         print("Model restored.")
 
-        apply_on_dataset(tensorflow_session, learner, TEST_DATA_PATH)
+        #apply_on_dataset(tensorflow_session, learner, TEST_DATA_PATH)
+        output_training_set_results(tensorflow_session, learner)

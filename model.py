@@ -123,10 +123,10 @@ class CustomModel(AbstractModel):
         FC1_SIZE = 128;
         FC2_SIZE = 128;
 
-        self.conv1_weights = weight_variable([3, 3, NUM_CHANNELS, CONV_DEPTH1])
+        self.conv1_weights = weight_variable([7, 7, NUM_CHANNELS, CONV_DEPTH1])
         self.conv1_biases = bias_variable([CONV_DEPTH1])
 
-        self.conv2_weights = weight_variable([3, 3, CONV_DEPTH1, CONV_DEPTH2])
+        self.conv2_weights = weight_variable([5, 5, CONV_DEPTH1, CONV_DEPTH2])
         self.conv2_biases = bias_variable([CONV_DEPTH2])
 
         self.conv3_weights = weight_variable([3, 3, CONV_DEPTH2, CONV_DEPTH3])

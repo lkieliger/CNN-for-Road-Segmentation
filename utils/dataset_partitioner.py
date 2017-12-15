@@ -30,7 +30,7 @@ def save_patches(patches, filename):
         patch.save(filename+"patch"+str(i)+".png")
 
         
-def partition_data(train_prop, val_prop, test_prop, make_patches=False):
+def partition_data(train_prop, val_prop, test_prop):
     np.random.seed(SEED)
 
     num_images = len(next(os.walk(PATH_PREFIX + TRAIN_DATA_IMAGES_PATH))[2])
@@ -62,6 +62,23 @@ def partition_data(train_prop, val_prop, test_prop, make_patches=False):
 
         else:
             print('File ' + image_filename + ' does not exist')
+
+
+def partitions_to_npy():
+    data = extract_all_data(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH)
+    labels = extract_all_labels(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH, num_images=-1)
+    np.save(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH + FILENAME, data)
+    np.save(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH + FILENAME, labels)
+
+    data = extract_all_data(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH)
+    labels = extract_all_labels(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH, num_images=-1)
+    np.save(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH + FILENAME, data)
+    np.save(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH + FILENAME, labels)
+
+    data = extract_all_data(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_IMAGES_PATH)
+    labels = extract_all_labels(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH, num_images=-1)
+    np.save(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_IMAGES_PATH + FILENAME, data)
+    np.save(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH + FILENAME, labels)
 
 
 def partition_patches(train_prop, val_prop, test_prop):
@@ -103,5 +120,6 @@ def read_partitions(prefix=''):
     return d_tr, d_val, d_te, l_tr, l_val, l_te
 
 if __name__ == '__main__':
-    partition_patches(TRAINING_PROP, VALIDATION_PROP, TEST_PROP)
+    partition_data(TRAINING_PROP, VALIDATION_PROP, TEST_PROP)
+    partitions_to_npy()
     #read_partitions(PATH_PREFIX)
