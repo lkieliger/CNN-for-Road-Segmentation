@@ -122,7 +122,7 @@ def augment_image(im):
 
     functions_list = [identity,
                       vertical_flip, horizontal_flip,
-                      rotate_45, rotate_90, rotate_135, rotate_180, rotate_225, rotate_270, rotate_315]
+                      rotate_45, rotate_90, rotate_135, rotate_180, rotate_270]
 
     return functions_list[np.random.randint(0,len(functions_list)-1)](im)
 

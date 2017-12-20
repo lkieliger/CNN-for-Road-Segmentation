@@ -104,7 +104,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
             if RESTORE_MODEL:
                 # Restore variables from disk.
-                learner.saver.restore(tensorflow_session, "restore/master_150_model.ckpt")
+                learner.saver.restore(tensorflow_session, "models/model.ckpt")
                 print("Model restored.")
 
             for iepoch in range(NUM_EPOCHS):
@@ -126,9 +126,8 @@ def main(argv=None):  # pylint: disable=unused-argument
                 # Train on whole dataset, batch by batch
                 for step in range(int(data_epoch.shape[0] / BATCH_SIZE)):
 
-                    offset = (step * BATCH_SIZE) % (data_epoch.shape[0] - BATCH_SIZE)
-                    batch_indices = perm_indices_train[offset:(offset + BATCH_SIZE)]
-
+                    offset = step * BATCH_SIZE
+                    batch_indices = perm_indices_train[offset:offset + BATCH_SIZE]
                     # Compute the offset of the current minibatch in the data.
                     # Note that we could use better randomization across epochs.
                     batch_data = data_epoch[batch_indices, :, :, :]
@@ -146,9 +145,8 @@ def main(argv=None):  # pylint: disable=unused-argument
 
                 # Assess performance by running on validation dataset, batch by batch
                 for step in range(int(data_validation.shape[0] / BATCH_SIZE)):
-                    offset = (step * BATCH_SIZE) % (data_validation.shape[0] - BATCH_SIZE)
-                    batch_indices = perm_indices_validation[offset:(offset + BATCH_SIZE)]
-
+                    offset = step * BATCH_SIZE
+                    batch_indices = perm_indices_validation[offset:offset + BATCH_SIZE]
                     batch_data = data_validation[batch_indices, :, :, :]
                     batch_labels = labels_validation[batch_indices]
 
