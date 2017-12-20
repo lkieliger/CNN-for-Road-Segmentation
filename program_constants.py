@@ -27,6 +27,7 @@ SHUFFLE_DATA = False
 NUM_EPOCHS = 120
 ADAM_INITIAL_LEARNING_RATE = 0.001 # more than 0.01 for custom, 0.001 for base model (maybe even less)
 RESTORE_MODEL = False  #If True, restore existing model instead of training a new one
+RESTORE_MODEL_PATH = "restore/cnnb-full-175_model.ckpt"
 AUGMENT_ON_THE_FLY = True
 USE_DROPOUT = True
 USE_L2_REGULARIZATION = True

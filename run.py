@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
 
         # Restore variables from disk.
-        learner.saver.restore(tensorflow_session, "models/model.ckpt")
+        learner.saver.restore(tensorflow_session, RESTORE_MODEL_PATH)
         print("Model restored.")
 
         #apply_on_dataset(tensorflow_session, learner, TEST_DATA_PATH)
