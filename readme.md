@@ -46,3 +46,10 @@ Then, to train the model, use: `python tf_aerial_images.py`
 Once a model is trained, use the `python run.py` command that will output the predictions using the model specified with the `RESTORE_MODEL_NAME` setting. The default restored model, `cnnb-full-175_model` is the model that was trained for 175 epochs on the full dataset.
 
 After having run the `run.py` file, the submission for Kaggle is created in the `submissions/`folder.
+
+#### Module dependencies
+
+- Tensorflow (version 1.14)
+- Numpy (version 1.13)
+- OpenCV (version 3.3.0.10)
+- Pandas (version 0.20.1)
