@@ -32,22 +32,17 @@ These parameters can be set to convenience in the `program_constants.py` file (o
 | DROPOUT_KEEP_RATE          | Proportion of the neurons that are not "dropped out". Used in conjonction with the ÙSE_DROPOUT`setting |
 | IMG_PATCH_SIZE             | Width of an image part.                  |
 | PATCH_CONTEXT_SIZE         | Width of the neighboring pixels to be considered together with the image patch. |
-|                            |                                          |
+| RESTORE_MODEL_NAME         | Name of the model to restore             |
 
 ### Training the model
 
-As the computations involve millions of parameters update, 
-we used Amazon AWS remote instances, which provided us access 
-to Nvidia Tesla K80 GPU, so as to speedup the model training.
+As the computations involve millions of parameters update, we used Amazon AWS remote instances, which provided us access to NVidia Tesla K80 GPU, so as to speedup the model training.
 
-Before training, the data must be serialized and partitioned between the train, 
-test and validation (our best model use 100% of the data);
- to do this use at the root : `python -m utils.dataset_partitioner`. 
-To train the model use: `python tf_aerial_images.py`.
+Before training, the data must be serialized and partitioned between the train, test and validation set.  To do this, run the following commands at the root of the project:
 
+	python -m utils.dataset_partitioner
+Then, to train the model, use: `python tf_aerial_images.py`
 
-### Obtain the Submission
+Once a model is trained, use the `python run.py` command that will output the predictions using the model specified with the `RESTORE_MODEL_NAME` setting. The default restored model, `cnnb-full-175_model` is the model that was trained for 175 epochs on the full dataset.
 
-To obtain the submission, use `python run.py`. This will use the best model 
-obtained : `cnnb-full-175_model`, trained for 175 epoch, on the images in `test_set_images`.
-The model used is located in the folder `models`. The file will be created in the folder `submissions`.
+After having run the `run.py` file, the submission for Kaggle is created in the `submissions/`folder.
