@@ -15,7 +15,7 @@ class ConfigLogger:
         self.curr_path_str = "logs/{}".format(self.timestamp.strftime("%d-%H_%M_%S") + '/')
         curr_path = Path(self.curr_path_str)
         if not curr_path.is_dir():
-            curr_path.mkdir()
+            curr_path.mkdir(parents=True)
 
         self.acc_train = self.prec_train = self.rec_train = self.f1_train = 0
         self.acc_validation = self.prec_validation = self.rec_validation = self.f1_validation = 0

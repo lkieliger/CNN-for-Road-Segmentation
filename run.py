@@ -9,10 +9,11 @@ from helpers.image_helpers import img_float_to_uint8
 from helpers.prediction_helpers import get_prediction
 from learner import Learner
 from program_constants import *
+from tf_aerial_images import output_training_set_results
 from utils.mask_to_submission import masks_to_submission
 
 
-def apply_on_dataset(session, learner, path):
+def apply_on_dataset(session, learner, path, test_set=False):
     print("Running prediction on training set")
     prediction_training_dir = "predictions/"
 
@@ -21,8 +22,11 @@ def apply_on_dataset(session, learner, path):
 
     res_file_name = []
     for j, filename in enumerate(os.listdir(path)):
-        i = j + 1
-        img = mpimg.imread(path + filename)
+        if test_set:
+            img = mpimg.imread(path + filename + "/" + filename + ".png")
+            filename = filename + ".png"
+        else:
+            img = mpimg.imread(path + filename)
         oimg = get_prediction(img, learner.cNNModel, session)
         oimg = img_float_to_uint8(1 - oimg)
         Image.fromarray(oimg).save(prediction_training_dir + filename)
@@ -38,7 +42,6 @@ def apply_on_dataset(session, learner, path):
 if __name__ == '__main__':
     learner = Learner()
 
-    # tf.reset_default_graph()
     # Create a local session to run this computation.
     with tf.Session() as tensorflow_session:
         np.random.seed(SEED)
@@ -47,5 +50,5 @@ if __name__ == '__main__':
         # Restore variables from disk.
         learner.saver.restore(tensorflow_session, RESTORE_MODEL_PATH)
         print("Model restored.")
-        apply_on_dataset(tensorflow_session, learner, TEST_DATA_PATH)
-        # output_training_set_results(tensorflow_session, learner)
+        apply_on_dataset(tensorflow_session, learner, TEST_DATA_PATH, test_set=True)
+        output_training_set_results(tensorflow_session, learner)

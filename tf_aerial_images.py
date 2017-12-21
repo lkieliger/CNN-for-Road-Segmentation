@@ -60,7 +60,7 @@ def assess_model(session, learner, data, labels):
     return f1s, acc, pre, rec
 
 
-def main(argv=None):  # pylint: disable=unused-argument
+def main(argv=None):
 
     learner = Learner()
 
@@ -77,7 +77,10 @@ def main(argv=None):  # pylint: disable=unused-argument
     accuracy_data_validation = []
     logger = ConfigLogger()
     logger.describe_model(learner.cNNModel.get_description())
-    weigths_1 = []
+
+    models_dir = "models/"
+    if not os.path.isdir(models_dir):
+        os.mkdir(models_dir)
 
     # Create a local session to run this computation.
     with Pool(8) as thread_pool:
@@ -101,7 +104,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
             if RESTORE_MODEL:
                 # Restore variables from disk.
-                learner.saver.restore(tensorflow_session, "models/model.ckpt")
+                learner.saver.restore(tensorflow_session, RESTORE_MODEL_PATH)
                 print("Model restored.")
 
             for iepoch in range(NUM_EPOCHS):
