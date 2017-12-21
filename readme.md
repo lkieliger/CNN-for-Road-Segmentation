@@ -10,6 +10,7 @@ The various settings can be selected in the `program_constants.py` file, and the
 
 The model is defined in the `model.py` module, and can be trained using the `tf_aerial_images.py` module The library responsible for doing the computations is [Tensorflow](https://www.tensorflow.org/).
 
+Before anything, the data (`training` and `test_set_images` folders) must be placed in the data folder at the root.
 
 
 ### Model settings
@@ -35,4 +36,18 @@ These parameters can be set to convenience in the `program_constants.py` file (o
 
 ### Training the model
 
-As the computations involve millions of parameters update, we used Amazon AWS remote instances, which provided us access to Nvidia Tesla K80 GPU, so as to speedup the model training.
+As the computations involve millions of parameters update, 
+we used Amazon AWS remote instances, which provided us access 
+to Nvidia Tesla K80 GPU, so as to speedup the model training.
+
+Before training, the data must be serialized and partitioned between the train, 
+test and validation (our best model use 100% of the data);
+ to do this use at the root : `python -m utils.dataset_partitioner`. 
+To train the model use: `python tf_aerial_images.py`.
+
+
+### Obtain the Submission
+
+To obtain the submission, use `python run.py`. This will use the best model 
+obtained : `cnnb-full-175_model`, trained for 175 epoch, on the images in `test_set_images`.
+The model used is located in the folder `models`. The file will be created in the folder `submissions`.
