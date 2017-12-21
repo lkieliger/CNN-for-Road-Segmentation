@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from program_constants import *
 import pandas as pd
+
+from program_constants import *
+
 
 def plot_accuracy(data_list, test_accuracy, timestamp, labels=None):
 
@@ -42,7 +44,7 @@ def plot_conv_weights(weights, timestamp):
         ax.set_xticks([])
         ax.set_yticks([])
 
-    plt.savefig("plots/weights_{}.png".format(timestamp))
+    plt.savefig("plots_img/weights_{}.png".format(timestamp))
 
 def plot_from_csv(data1, data2):
     df_train = pd.read_csv(data1[0])

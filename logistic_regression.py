@@ -1,17 +1,19 @@
 # This file is inspired by the segment_aerial_images.ipynb file, provided by the EPFL ML course.
 
+import os
+
 from sklearn import linear_model
-from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import KFold
+from sklearn.preprocessing import PolynomialFeatures
 
-import matplotlib.pyplot as plt
-import os, sys
-
-# Loaded a set of images
 from helpers.image_helpers import *
 
 
 def load_images():
+    """
+    Load images and extract patches of size 16x16 of each images from the training.
+    :return: Return an array containing patches of size 16x16 from truth and satellite images.
+    """
     root_dir = "data/training/"
     image_dir = root_dir + "images/"
     files = os.listdir(image_dir)
@@ -40,24 +42,27 @@ def load_images():
     return img_patches, gt_patches
 
 
-# Extract 6-dimensional features consisting of average RGB color as well as variance
 def extract_features(img):
+    """ Extract 6-dimensional features consisting of average RGB color as well as variance
+    """
     feat_m = np.mean(img, axis=(0, 1))
     feat_v = np.var(img, axis=(0, 1))
     feat = np.append(feat_m, feat_v)
     return feat
 
 
-# Extract 2-dimensional features consisting of average gray color as well as variance
 def extract_features_2d(img):
+    """Extract 2-dimensional features consisting of average gray color as well as variance
+    """
     feat_m = np.mean(img)
     feat_v = np.var(img)
     feat = np.append(feat_m, feat_v)
     return feat
 
 
-# Compute features for each image patch
 def value_to_class(v):
+    """ Compute features for each image patch
+    """
     foreground_threshold = 0.25  # percentage of pixels > 1 required to assign a foreground label to a patch
 
     df = np.sum(v)
@@ -68,6 +73,13 @@ def value_to_class(v):
 
 
 def compute_scores(Z, Y):
+    """
+    Compute the scores between Z, the prediction and Y, the truth
+    :param Z: The prediction
+    :param Y: The ground truth
+    :return: The accuracy score and the F1 score
+    """
+
     # Get non-zeros in prediction and grountruth arrays
     Z_true = np.nonzero(Z)[0]
     Z_false = np.nonzero(Z - 1)[0]

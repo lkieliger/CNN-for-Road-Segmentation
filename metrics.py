@@ -1,5 +1,5 @@
 import numpy
-import tensorflow as tf
+
 
 def error_rate(predictions, labels):
     """
@@ -15,17 +15,21 @@ def error_rate(predictions, labels):
         numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1)) /
         predictions.shape[0])
 
+
 def precision(tp, fp):
-    return tp / (tp+fp)
+    return tp / (tp + fp)
+
 
 def recall(tp, fn):
-    return tp / (tp+fn)
+    return tp / (tp + fn)
+
 
 def accuracy(tp, fp, tn, fn):
     return (tp + tn) / (tp + tn + fp + fn)
+
 
 def f1_score(tp, fp, fn):
     pre = precision(tp, fp)
     rec = recall(tp, fn)
 
-    return (2.0 * pre * rec)/(pre + rec)
+    return (2.0 * pre * rec) / (pre + rec)

@@ -34,12 +34,13 @@ USE_LEAKY_RELU = False
 BALANCE_TRAIN_DATA = False
 DROPOUT_KEEP_RATE = 0.5
 IMG_PATCH_SIZE = 16
+DROPOUT_KEEP_RATE_CONV = 0.8
 
 # TODO: check images output with augmented dataset and no shuffling
 
 """
 Context margin around the patch to be considered.
 """
-PATCH_CONTEXT_SIZE = 16 #TODO: go to 20 for 3 pooling custom model
+PATCH_CONTEXT_SIZE = 32  # TODO: go to 20 for 3 pooling custom model
 
 EFFECTIVE_INPUT_SIZE = 2 * PATCH_CONTEXT_SIZE + IMG_PATCH_SIZE
