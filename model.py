@@ -105,7 +105,6 @@ class BaselineModel(AbstractModel):
 
         return model
 
-
 class CustomModel(AbstractModel):
     def __init__(self):
         AbstractModel.__init__(self, "Conv[3,3,3,64] ReLU Pool[2] Drop Conv[3,3,64,128] ReLu Drop"
@@ -121,7 +120,7 @@ class CustomModel(AbstractModel):
         CONV_DEPTH2 = 128
         CONV_DEPTH3 = 256
         TWO_POWER_N_POOL = 2 * 2 * 2
-        FC1_SIZE = 256;
+        FC1_SIZE = 256
         #FC2_SIZE = 256;
 
         self.conv1_weights = weight_variable([3, 3, NUM_CHANNELS, CONV_DEPTH1])
@@ -167,14 +166,14 @@ class CustomModel(AbstractModel):
             pool1 = max_pool_2x2(relu1)
 
             if USE_DROPOUT and train:
-                pool1 = dropout(pool1, DROPOUT_KEEP_RATE_CONV);
+                pool1 = dropout(pool1, DROPOUT_KEEP_RATE_CONV)
 
             conv2 = conv2d(pool1, self.conv2_weights)
             relu2 = relu(conv2 + self.conv2_biases)
             pool2 = max_pool_2x2(relu2)
 
             if USE_DROPOUT and train:
-                pool2 = dropout(pool2, DROPOUT_KEEP_RATE_CONV);
+                pool2 = dropout(pool2, DROPOUT_KEEP_RATE_CONV)
 
             conv3 = conv2d(pool2, self.conv3_weights)
             relu3 = relu(conv3 + self.conv3_biases)
@@ -188,7 +187,7 @@ class CustomModel(AbstractModel):
             pool4 = max_pool_2x2(relu4)
 
             if USE_DROPOUT and train:
-                pool4 = dropout(pool4, DROPOUT_KEEP_RATE_CONV);
+                pool4 = dropout(pool4, DROPOUT_KEEP_RATE_CONV)
 
             # Reshape the feature map cuboid into a 2D matrix to feed it to the
             # fully connected layers.

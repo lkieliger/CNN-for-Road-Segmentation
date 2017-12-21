@@ -9,6 +9,7 @@ from helpers.prediction_helpers import get_prediction_with_overlay, get_predicti
 from learner import Learner
 from program_constants import *
 from tf_aerial_images import output_training_set_results
+from utils.mask_to_submission import masks_to_submission
 
 
 def apply_on_dataset(session, learner, path):
@@ -27,22 +28,20 @@ def apply_on_dataset(session, learner, path):
         Image.fromarray(oimg).save(prediction_training_dir + filename)
         res_file_name.append(prediction_training_dir + filename)
         print(prediction_training_dir + filename + " is saved")
-    masks_to_submission("submissions/" + model_name + "_submission.csv", *res_file_name)
+    masks_to_submission("submissions/" + RESTORE_MODEL_NAME + "_submission.csv", *res_file_name)
 
 
 if __name__ == '__main__':
-
     learner = Learner()
 
-    #tf.reset_default_graph()
+    # tf.reset_default_graph()
     # Create a local session to run this computation.
     with tf.Session() as tensorflow_session:
         np.random.seed(SEED)
         tf.set_random_seed(SEED)
 
-
         # Restore variables from disk.
         learner.saver.restore(tensorflow_session, RESTORE_MODEL_PATH)
         print("Model restored.")
-        apply_on_dataset(tensorflow_session, learner, TEST_DATA_PATH, model_name)
-        output_training_set_results(tensorflow_session, learner)
+        apply_on_dataset(tensorflow_session, learner, TEST_DATA_PATH)
+        # output_training_set_results(tensorflow_session, learner)
