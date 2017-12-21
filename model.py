@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-from helpers.image_helpers import get_image_summary
 from program_constants import *
 
 
@@ -23,7 +22,6 @@ def max_pool_2x2(x):
 
 
 def relu(x):
-
     if USE_LEAKY_RELU:
         return tf.nn.leaky_relu(x)
     else:
@@ -40,6 +38,7 @@ class AbstractModel:
 
     def get_description(self):
         return self.description
+
 
 class BaselineModel(AbstractModel):
     def __init__(self):
@@ -105,6 +104,7 @@ class BaselineModel(AbstractModel):
 
         return model
 
+
 class CustomModel(AbstractModel):
     def __init__(self):
         AbstractModel.__init__(self, "Conv[3,3,3,64] ReLU Pool[2] Drop Conv[3,3,64,128] ReLu Drop"
@@ -121,7 +121,7 @@ class CustomModel(AbstractModel):
         CONV_DEPTH3 = 256
         TWO_POWER_N_POOL = 2 * 2 * 2
         FC1_SIZE = 256
-        #FC2_SIZE = 256;
+        # FC2_SIZE = 256;
 
         self.conv1_weights = weight_variable([3, 3, NUM_CHANNELS, CONV_DEPTH1])
         self.conv1_biases = bias_variable([CONV_DEPTH1])
@@ -146,12 +146,12 @@ class CustomModel(AbstractModel):
         self.fc2_weights = weight_variable([FC1_SIZE, NUM_LABELS])
         self.fc2_biases = bias_variable([NUM_LABELS])
 
-        #Fifth layer FULLY CONNECTED
-        #self.fc3_weights = weight_variable([FC2_SIZE, NUM_LABELS])
-        #self.fc3_biases = bias_variable([NUM_LABELS])
+        # Fifth layer FULLY CONNECTED
+        # self.fc3_weights = weight_variable([FC2_SIZE, NUM_LABELS])
+        # self.fc3_biases = bias_variable([NUM_LABELS])
 
     def get_weights(self):
-        return (tf.nn.l2_loss(self.fc1_weights) + tf.nn.l2_loss(self.fc2_weights)) #+ tf.nn.l2_loss(self.fc3_weights))
+        return (tf.nn.l2_loss(self.fc1_weights) + tf.nn.l2_loss(self.fc2_weights))  # + tf.nn.l2_loss(self.fc3_weights))
 
     def model_func(self):
         # We will replicate the model structure for the training subgraph, as well
@@ -177,7 +177,7 @@ class CustomModel(AbstractModel):
 
             conv3 = conv2d(pool2, self.conv3_weights)
             relu3 = relu(conv3 + self.conv3_biases)
-            #pool3 = max_pool_2x2(relu3)
+            # pool3 = max_pool_2x2(relu3)
 
             if USE_DROPOUT and train:
                 relu3 = dropout(relu3, DROPOUT_KEEP_RATE_CONV)
@@ -205,12 +205,12 @@ class CustomModel(AbstractModel):
             if USE_DROPOUT and train:
                 hidden1 = dropout(hidden1, 0.8)
 
-            #hidden2 = relu(tf.matmul(hidden1, self.fc2_weights) + self.fc2_biases)
+            # hidden2 = relu(tf.matmul(hidden1, self.fc2_weights) + self.fc2_biases)
 
-            #if USE_DROPOUT and train:
+            # if USE_DROPOUT and train:
             #    hidden2 = dropout(hidden2, 0.8)
 
-            #out = tf.matmul(hidden2, self.fc3_weights) + self.fc3_biases
+            # out = tf.matmul(hidden2, self.fc3_weights) + self.fc3_biases
             out = tf.matmul(hidden1, self.fc2_weights) + self.fc2_biases
 
             return out

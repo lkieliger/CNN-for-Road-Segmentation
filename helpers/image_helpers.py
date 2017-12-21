@@ -1,8 +1,9 @@
-from program_constants import *
-from PIL import Image
+import matplotlib.image as mpimg
 import numpy as np
 import tensorflow as tf
-import matplotlib.image as mpimg
+from PIL import Image
+
+from program_constants import *
 
 
 def img_crop(im, w, h, is_2d=False, patch_context_override=-1):

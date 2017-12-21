@@ -1,13 +1,8 @@
 import os
 import random
 
-import matplotlib.image as mpimg
-from PIL import Image
 import cv2
 import numpy as np
-
-from helpers.image_helpers import img_float_to_uint8
-from utils.dataset_partitioner import clean_folder
 
 input_path_truth = '../data/training/groundtruth_original/'
 input_path_images = '../data/training/images_original/'
@@ -47,37 +42,9 @@ def generate_rotated_training_images(angle=45, use_delta=False, override_image=T
                         rotate_image, False, angle + delta)
 
 
-def generate_vertical_flip_training_images(override_image=True):
-    """
-    Generate vertically flipped images in the folder groundtruth and images.
-    :param override_image: If True override the first images of the folder
-    """
-    num_files = 0 if override_image else len(next(os.walk(output_path_truth))[2])
-    for i in range(1, 101):
-        generate_images(input_path_truth + 'satImage_' + '{num:03d}'.format(num=i) + '.png',
-                        output_path_truth + 'satImage_' + '{num:03d}'.format(num=i + num_files) + '.png',
-                        vertical_flip, True)
-        generate_images(input_path_images + 'satImage_' + '{num:03d}'.format(num=i) + '.png',
-                        output_path_images + 'satImage_' + '{num:03d}'.format(num=i + num_files) + '.png',
-                        vertical_flip, False)
-
-
-def generate_horizontal_flip_training_images(override_image=True):
-    """
-    Generate horizontally flipped images in the folder groundtruth and images.
-    :param override_image: If True override the first images of the folder
-    """
-    num_files = 0 if override_image else len(next(os.walk(output_path_truth))[2])
-    for i in range(1, 101):
-        generate_images(input_path_truth + 'satImage_' + '{num:03d}'.format(num=i) + '.png',
-                        output_path_truth + 'satImage_' + '{num:03d}'.format(num=i + num_files) + '.png',
-                        horizontal_flip, True)
-        generate_images(input_path_images + 'satImage_' + '{num:03d}'.format(num=i) + '.png',
-                        output_path_images + 'satImage_' + '{num:03d}'.format(num=i + num_files) + '.png',
-                        horizontal_flip, False)
-
 def identity(img):
     return img
+
 
 def vertical_flip(img, use_grayscale=False):
     """
@@ -140,47 +107,39 @@ def rotate_image(img, use_grayscale, angle):
 def rotate_45(img):
     return rotate_image(img, False, 45)
 
+
 def rotate_90(img):
     return rotate_image(img, False, 90)
+
 
 def rotate_135(img):
     return rotate_image(img, False, 135)
 
+
 def rotate_180(img):
     return rotate_image(img, False, 180)
+
 
 def rotate_225(img):
     return rotate_image(img, False, 225)
 
+
 def rotate_270(img):
     return rotate_image(img, False, 270)
+
 
 def rotate_315(img):
     return rotate_image(img, False, 315)
 
 
 def augment_image(im):
-
     functions_list = [identity,
                       vertical_flip, horizontal_flip,
                       rotate_45, rotate_90, rotate_135, rotate_180, rotate_270]
 
-    return functions_list[np.random.randint(0,len(functions_list)-1)](im)
+    return functions_list[np.random.randint(0, len(functions_list) - 1)](im)
+
 
 def augment_images(imgs, thread_pool):
     print("Augmenting epoch data")
     return np.array(thread_pool.map(augment_image, imgs))
-
-
-
-if __name__ == '__main__':
-
-    clean_folder(output_path_images+"*")
-    clean_folder(output_path_truth+"*")
-    generate_rotated_training_images(0, use_delta=False, override_image=False)
-    #generate_rotated_training_images(45, use_delta=False, override_image=False)
-    #generate_rotated_training_images(180, use_delta=False, override_image=False)
-    #generate_rotated_training_images(270, use_delta=False, override_image=False)
-    #generate_vertical_flip_training_images(override_image=False)
-    #generate_horizontal_flip_training_images(override_image=False)
-

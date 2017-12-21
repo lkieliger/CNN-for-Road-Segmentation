@@ -1,10 +1,10 @@
 # This file is inspired by the segment_aerial_images.ipynb file, provided by the EPFL ML course.
 
-from sklearn import linear_model
-from sklearn.preprocessing import PolynomialFeatures
+import os
 
 import matplotlib.pyplot as plt
-import os, sys
+from sklearn import linear_model
+from sklearn.preprocessing import PolynomialFeatures
 
 # Loaded a set of images
 from helpers.image_helpers import *

@@ -1,14 +1,14 @@
 import os
-from PIL import Image
-import tensorflow as tf
-import numpy as np
+
 import matplotlib.image as mpimg
+import numpy as np
+import tensorflow as tf
+from PIL import Image
 
 from helpers.image_helpers import img_float_to_uint8
-from helpers.prediction_helpers import get_prediction_with_overlay, get_prediction
+from helpers.prediction_helpers import get_prediction
 from learner import Learner
 from program_constants import *
-from tf_aerial_images import output_training_set_results
 from utils.mask_to_submission import masks_to_submission
 
 
@@ -28,7 +28,11 @@ def apply_on_dataset(session, learner, path):
         Image.fromarray(oimg).save(prediction_training_dir + filename)
         res_file_name.append(prediction_training_dir + filename)
         print(prediction_training_dir + filename + " is saved")
-    masks_to_submission("submissions/" + RESTORE_MODEL_NAME + "_submission.csv", *res_file_name)
+
+    submissions_dir = "submissions/"
+    if not os.path.isdir(submissions_dir):
+        os.mkdir(submissions_dir)
+    masks_to_submission(submissions_dir + RESTORE_MODEL_NAME + "_submission.csv", *res_file_name)
 
 
 if __name__ == '__main__':

@@ -1,13 +1,13 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
-from learner import Learner
-from program_constants import *
 import pandas as pd
 
+from program_constants import *
+
+
 def plot_accuracy(data_list, test_accuracy, timestamp, labels=None):
-
-
     if labels is None:
         labels = ["Training", "Validation"]
 
@@ -21,10 +21,12 @@ def plot_accuracy(data_list, test_accuracy, timestamp, labels=None):
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")
     plt.legend()
+    if not os.path.isdir("plots/"):
+        os.mkdir("plots/")
     plt.savefig("plots/accuracy_{}.png".format(timestamp))
 
-def plot_conv_weights(weights, timestamp, fileprefix=""):
 
+def plot_conv_weights(weights, timestamp, fileprefix=""):
     num_filters = weights.shape[3]
     num_grids = int(np.ceil(np.sqrt(num_filters)))
 
@@ -38,20 +40,20 @@ def plot_conv_weights(weights, timestamp, fileprefix=""):
             img = (data - w_min) / (w_max - w_min)
 
             # Plot image.
-            ax.imshow(img,interpolation='nearest')
+            ax.imshow(img, interpolation='nearest')
 
         ax.axis('off')
         ax.set_xticks([])
         ax.set_yticks([])
 
-    plt.savefig(fileprefix+"plots/weights_{}.png".format(timestamp))
+    plt.savefig(fileprefix + "plots/weights_{}.png".format(timestamp))
+
 
 def plot_from_csv(data1, data2):
     df_train = pd.read_csv(data1[0])
     df_val = pd.read_csv(data1[1])
 
-
-    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(8,4), gridspec_kw = {'width_ratios':[1, 1]})
+    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(8, 4), gridspec_kw={'width_ratios': [1, 1]})
     ax1.plot(df_train.index, df_train['# accuracy'], label="Train")
     ax1.plot(df_val.index, df_val['# accuracy'], label="Validation")
     ax1.plot((1, 100), (data1[2], data1[2]), label="Test")
@@ -75,8 +77,6 @@ def plot_from_csv(data1, data2):
     plt.show()
 
 
-
 if __name__ == '__main__':
-     plot_from_csv(["../logs/11-21_20_09/train_scores.csv", "../logs/11-21_20_09/val_scores.csv", 0.87648],
+    plot_from_csv(["../logs/11-21_20_09/train_scores.csv", "../logs/11-21_20_09/val_scores.csv", 0.87648],
                   ["../logs/11-20_15_55/train_scores.csv", "../logs/11-20_15_55/val_scores.csv", 0.9109])
-

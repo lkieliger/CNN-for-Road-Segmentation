@@ -1,10 +1,10 @@
 import tensorflow as tf
 
-from model import BaselineModel, CustomModel
+from model import CustomModel
 from program_constants import *
 
-class Learner:
 
+class Learner:
     def __init__(self):
         self._init_learner()
 
@@ -15,7 +15,7 @@ class Learner:
         self._init_predictions()
 
         # We'll compute them only once in a while by calling their {eval()} method.
-        #self.train_all_prediction = tf.nn.softmax(self.cNNModel.model_func()(self.train_all_data_node))
+        # self.train_all_prediction = tf.nn.softmax(self.cNNModel.model_func()(self.train_all_data_node))
 
         self._init_regularizer()
         self._init_loss()
@@ -23,11 +23,10 @@ class Learner:
         self._init_optimizer()
         self._init_metrics()
 
-        #self._init_params_summaries()
+        # self._init_params_summaries()
 
         # Add ops to save and restore all the variables.
         self.saver = tf.train.Saver()
-
 
     def _init_nodes(self):
         self.data_node = tf.placeholder(
@@ -59,7 +58,6 @@ class Learner:
         self.validation_predictions = tf.nn.softmax(self.logits_validation)
         self.test_predictions = tf.nn.softmax(self.logits_test)
 
-
     def _init_loss(self):
         # print 'logits = ' + str(logits.get_shape()) + ' train_labels_node = ' + str(train_labels_node.get_shape())
         self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
@@ -68,7 +66,6 @@ class Learner:
         # Add the regularization term to the loss.
         if USE_L2_REGULARIZATION:
             self.loss += 5e-4 * self.regularizers
-
 
     def _init_metrics(self):
         l_train = tf.argmax(self.labels_node, 1)
@@ -133,8 +130,7 @@ class Learner:
             predictions=p_validation,
             name="validation"
         )
-        
-        
+
         """
         TEST METRICS
         """
@@ -178,31 +174,31 @@ class Learner:
         return [self.optimizer, self.loss, self.train_predictions]
 
     def get_train_metric_ops(self):
-        return [self.true_train_pos, self.false_train_pos, 
+        return [self.true_train_pos, self.false_train_pos,
                 self.true_train_neg, self.false_train_neg]
 
     def get_train_metric_update_ops(self):
-        return [self.true_train_pos_op, self.false_train_pos_op, 
+        return [self.true_train_pos_op, self.false_train_pos_op,
                 self.true_train_neg_op, self.false_train_neg_op]
 
     def get_validation_ops(self):
         return [self.validation_predictions]
 
     def get_validation_metric_ops(self):
-        return [self.true_validation_pos, self.false_validation_pos, 
+        return [self.true_validation_pos, self.false_validation_pos,
                 self.true_validation_neg, self.false_validation_neg]
 
     def get_validation_metric_update_ops(self):
-        return [self.true_validation_pos_op, self.false_validation_pos_op, 
+        return [self.true_validation_pos_op, self.false_validation_pos_op,
                 self.true_validation_neg_op, self.false_validation_neg_op]
-    
+
     def get_test_ops(self):
         return [self.test_predictions]
 
     def get_test_metric_ops(self):
-        return [self.true_test_pos, self.false_test_pos, 
+        return [self.true_test_pos, self.false_test_pos,
                 self.true_test_neg, self.false_test_neg]
 
     def get_test_metric_update_ops(self):
-        return [self.true_test_pos_op, self.false_test_pos_op, 
+        return [self.true_test_pos_op, self.false_test_pos_op,
                 self.true_test_neg_op, self.false_test_neg_op]
