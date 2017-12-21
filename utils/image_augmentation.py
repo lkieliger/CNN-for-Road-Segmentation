@@ -1,9 +1,12 @@
 import os
 import random
 
+import matplotlib.image as mpimg
+from PIL import Image
 import cv2
 import numpy as np
 
+from helpers.image_helpers import img_float_to_uint8
 from utils.dataset_partitioner import clean_folder
 
 input_path_truth = '../data/training/groundtruth_original/'
@@ -73,8 +76,10 @@ def generate_horizontal_flip_training_images(override_image=True):
                         output_path_images + 'satImage_' + '{num:03d}'.format(num=i + num_files) + '.png',
                         horizontal_flip, False)
 
+def identity(img):
+    return img
 
-def vertical_flip(img, use_grayscale):
+def vertical_flip(img, use_grayscale=False):
     """
     Flip vertically the image.
     :param img: The image to be flipped
@@ -87,7 +92,7 @@ def vertical_flip(img, use_grayscale):
     return res
 
 
-def horizontal_flip(img, use_grayscale):
+def horizontal_flip(img, use_grayscale=False):
     """
     Flip horizontally the image.
     :param img: The image to be flipped
@@ -132,12 +137,50 @@ def rotate_image(img, use_grayscale, angle):
     return crop_image
 
 
+def rotate_45(img):
+    return rotate_image(img, False, 45)
+
+def rotate_90(img):
+    return rotate_image(img, False, 90)
+
+def rotate_135(img):
+    return rotate_image(img, False, 135)
+
+def rotate_180(img):
+    return rotate_image(img, False, 180)
+
+def rotate_225(img):
+    return rotate_image(img, False, 225)
+
+def rotate_270(img):
+    return rotate_image(img, False, 270)
+
+def rotate_315(img):
+    return rotate_image(img, False, 315)
+
+
+def augment_image(im):
+
+    functions_list = [identity,
+                      vertical_flip, horizontal_flip,
+                      rotate_45, rotate_90, rotate_135, rotate_180, rotate_270]
+
+    return functions_list[np.random.randint(0,len(functions_list)-1)](im)
+
+def augment_images(imgs, thread_pool):
+    print("Augmenting epoch data")
+    return np.array(thread_pool.map(augment_image, imgs))
+
+
+
 if __name__ == '__main__':
+
     clean_folder(output_path_images+"*")
     clean_folder(output_path_truth+"*")
     generate_rotated_training_images(0, use_delta=False, override_image=False)
-    generate_rotated_training_images(90, use_delta=False, override_image=False)
-    generate_rotated_training_images(180, use_delta=False, override_image=False)
-    generate_rotated_training_images(270, use_delta=False, override_image=False)
-    generate_vertical_flip_training_images(override_image=False)
-    generate_horizontal_flip_training_images(override_image=False)
+    #generate_rotated_training_images(45, use_delta=False, override_image=False)
+    #generate_rotated_training_images(180, use_delta=False, override_image=False)
+    #generate_rotated_training_images(270, use_delta=False, override_image=False)
+    #generate_vertical_flip_training_images(override_image=False)
+    #generate_horizontal_flip_training_images(override_image=False)
+

@@ -92,11 +92,11 @@ def get_prediction_with_groundtruth(filename, image_idx, convolutional_model: Ba
     return cimg
 
 
-def get_prediction_with_overlay(filename, imagename, convolutional_model: BaselineModel, tensorflow_session: tf.Session):
+def get_prediction_with_overlay(filepath, filename, convolutional_model: BaselineModel, tensorflow_session: tf.Session):
     """
     Get the original image with the predictions overlaid on top of it
     
-    :param filename: The path to the input image folder
+    :param filepath: The path to the input image folder
     :param image_idx: The index of the image amongst the dataset
     :param convolutional_model: The convolutional neural network model
     :param tensorflow_session: The tensorflow session
@@ -104,7 +104,7 @@ def get_prediction_with_overlay(filename, imagename, convolutional_model: Baseli
     :return: The original image with its predictions overlaid
     """
 
-    img = mpimg.imread(filename+imagename)
+    img = mpimg.imread(filepath + filename)
     img_prediction = get_prediction(img, convolutional_model, tensorflow_session)
     oimg = make_img_overlay(img, img_prediction)
 

@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-
+import tensorflow as tf
+from learner import Learner
 from program_constants import *
-
+import pandas as pd
 
 def plot_accuracy(data_list, test_accuracy, timestamp, labels=None):
 
@@ -23,7 +23,7 @@ def plot_accuracy(data_list, test_accuracy, timestamp, labels=None):
     plt.legend()
     plt.savefig("plots/accuracy_{}.png".format(timestamp))
 
-def plot_conv_weights(weights, timestamp):
+def plot_conv_weights(weights, timestamp, fileprefix=""):
 
     num_filters = weights.shape[3]
     num_grids = int(np.ceil(np.sqrt(num_filters)))
@@ -44,7 +44,7 @@ def plot_conv_weights(weights, timestamp):
         ax.set_xticks([])
         ax.set_yticks([])
 
-    plt.savefig("plots_img/weights_{}.png".format(timestamp))
+    plt.savefig(fileprefix+"plots/weights_{}.png".format(timestamp))
 
 def plot_from_csv(data1, data2):
     df_train = pd.read_csv(data1[0])
@@ -74,6 +74,9 @@ def plot_from_csv(data1, data2):
 
     plt.show()
 
+
+
 if __name__ == '__main__':
-    plot_from_csv(["../logs/11-21_20_09/train_scores.csv", "../logs/11-21_20_09/val_scores.csv", 0.87648],
+     plot_from_csv(["../logs/11-21_20_09/train_scores.csv", "../logs/11-21_20_09/val_scores.csv", 0.87648],
                   ["../logs/11-20_15_55/train_scores.csv", "../logs/11-20_15_55/val_scores.csv", 0.9109])
+

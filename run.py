@@ -1,18 +1,17 @@
 import os
-
-import matplotlib.image as mpimg
-import numpy as np
-import tensorflow as tf
 from PIL import Image
+import tensorflow as tf
+import numpy as np
+import matplotlib.image as mpimg
 
 from helpers.image_helpers import img_float_to_uint8
-from helpers.prediction_helpers import get_prediction
+from helpers.prediction_helpers import get_prediction_with_overlay, get_prediction
 from learner import Learner
 from program_constants import *
-from utils.mask_to_submission import masks_to_submission
+from tf_aerial_images import output_training_set_results
 
 
-def apply_on_dataset(session, learner, path, model_name):
+def apply_on_dataset(session, learner, path):
     print("Running prediction on training set")
     prediction_training_dir = "predictions/"
 
@@ -32,15 +31,18 @@ def apply_on_dataset(session, learner, path, model_name):
 
 
 if __name__ == '__main__':
-    learner = Learner()
-    model_name = "cnnb-full-175"
 
+    learner = Learner()
+
+    #tf.reset_default_graph()
     # Create a local session to run this computation.
     with tf.Session() as tensorflow_session:
         np.random.seed(SEED)
         tf.set_random_seed(SEED)
 
+
         # Restore variables from disk.
-        learner.saver.restore(tensorflow_session, "restore/" + model_name + "_model.ckpt")
+        learner.saver.restore(tensorflow_session, RESTORE_MODEL_PATH)
         print("Model restored.")
         apply_on_dataset(tensorflow_session, learner, TEST_DATA_PATH, model_name)
+        output_training_set_results(tensorflow_session, learner)

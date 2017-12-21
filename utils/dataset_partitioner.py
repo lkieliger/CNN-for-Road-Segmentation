@@ -1,10 +1,11 @@
-import glob
-import os
-
-import cv2
 import numpy as np
+import os
+import glob
+import cv2
+import matplotlib.image as mpimg
 
 from helpers.data_helpers import extract_all_data, extract_all_labels
+from helpers.image_helpers import img_crop
 from program_constants import *
 
 PATH_PREFIX = "../"
@@ -36,11 +37,12 @@ def clean_all_folders():
 
 
 def save_patches(patches, filename):
+
     for i, patch in enumerate(patches):
-        patch.save(filename + "patch" + str(i) + ".png")
+        patch.save(filename+"patch"+str(i)+".png")
 
-
-def partition_data(train_prop, val_prop, test_prop, make_patches=False):
+        
+def partition_data(train_prop, val_prop, test_prop):
     """
     Split the images into train test validation and save them as images.
     :param train_prop: The proportion of train
@@ -65,7 +67,7 @@ def partition_data(train_prop, val_prop, test_prop, make_patches=False):
         if os.path.isfile(image_filename) and os.path.isfile(gt_filename):
             img = cv2.imread(image_filename)
             gt = cv2.imread(gt_filename)
-            shuffling_index = i - 1
+            shuffling_index = i-1
             if shuffling_index in indices_train:
                 cv2.imwrite(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH + imageid + ".png", img)
                 cv2.imwrite(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH + imageid + ".png", gt)
@@ -78,6 +80,23 @@ def partition_data(train_prop, val_prop, test_prop, make_patches=False):
 
         else:
             print('File ' + image_filename + ' does not exist')
+
+
+def partitions_to_npy():
+    data = extract_all_data(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH)
+    labels = extract_all_labels(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH, num_images=-1)
+    np.save(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH + FILENAME, data)
+    np.save(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH + FILENAME, labels)
+
+    data = extract_all_data(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH)
+    labels = extract_all_labels(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH, num_images=-1)
+    np.save(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_IMAGES_PATH + FILENAME, data)
+    np.save(PATH_PREFIX + TRAIN_DATA_VALIDATION_SPLIT_GROUNDTRUTH_PATH + FILENAME, labels)
+
+    data = extract_all_data(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_IMAGES_PATH)
+    labels = extract_all_labels(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH, num_images=-1)
+    np.save(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_IMAGES_PATH + FILENAME, data)
+    np.save(PATH_PREFIX + TRAIN_DATA_TEST_SPLIT_GROUNDTRUTH_PATH + FILENAME, labels)
 
 
 def partition_patches(train_prop, val_prop, test_prop):
@@ -100,7 +119,7 @@ def partition_patches(train_prop, val_prop, test_prop):
 
     indices_train = shuffled_indices[0:int(num_patches * train_prop)]
     indices_validation = shuffled_indices[int(num_patches * train_prop): int(num_patches * train_prop) + int(num_patches * val_prop)]
-    indices_test = shuffled_indices[int(num_patches * train_prop) + int(num_patches * val_prop):]
+    indices_test = shuffled_indices[int(num_patches * train_prop) + int(num_patches * val_prop) : ]
 
     np.save(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_IMAGES_PATH + FILENAME, data[indices_train])
     np.save(PATH_PREFIX + TRAIN_DATA_TRAIN_SPLIT_GROUNDTRUTH_PATH + FILENAME, labels[indices_train])
@@ -129,7 +148,7 @@ def read_partitions(prefix=''):
 
     return d_tr, d_val, d_te, l_tr, l_val, l_te
 
-
 if __name__ == '__main__':
-    partition_patches(TRAINING_PROP, VALIDATION_PROP, TEST_PROP)
-    # read_partitions(PATH_PREFIX)
+    partition_data(TRAINING_PROP, VALIDATION_PROP, TEST_PROP)
+    partitions_to_npy()
+    #read_partitions(PATH_PREFIX)

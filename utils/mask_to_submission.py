@@ -37,7 +37,7 @@ def masks_to_submission(submission_filename, *image_filenames):
 
 
 if __name__ == '__main__':
-    submission_filename = 'dummy_submission.csv'
+    submission_filename = 'cnnb16da_submission.csv'
     image_filenames = []
     for i in range(1, 51):
         image_filename = '../predictions/test_' + str(i) + '.png'
