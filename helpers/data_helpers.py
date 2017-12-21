@@ -62,18 +62,20 @@ def extract_all_data(path, num_images=-1):
         print(filename)
         imgs.append(mpimg.imread(os.path.join(path, filename)))
 
-    IMG_WIDTH = imgs[0].shape[0]
+    data = []
+    if (len(imgs) > 0):
+        IMG_WIDTH = imgs[0].shape[0]
 
-    # Check whether the images are already cropped
-    if IMG_WIDTH > EFFECTIVE_INPUT_SIZE:
-        # List formed by consecutive series of patches of each image (patches ordered in row order)
-        img_patches = [img_crop(i, IMG_PATCH_SIZE, IMG_PATCH_SIZE, is_2d=False) for i in imgs]
+        # Check whether the images are already cropped
+        if IMG_WIDTH > EFFECTIVE_INPUT_SIZE:
+            # List formed by consecutive series of patches of each image (patches ordered in row order)
+            img_patches = [img_crop(i, IMG_PATCH_SIZE, IMG_PATCH_SIZE, is_2d=False) for i in imgs]
 
-        # List of all the patches, ordered by image
-        data = [img_patches[i][j] for i in range(len(img_patches)) for j in range(len(img_patches[i]))]
-    else:
-        data = imgs
-        print("Detected already cropped image")
+            # List of all the patches, ordered by image
+            data = [img_patches[i][j] for i in range(len(img_patches)) for j in range(len(img_patches[i]))]
+        else:
+            data = imgs
+            print("Detected already cropped image")
 
     return numpy.asarray(data)
 
@@ -135,17 +137,19 @@ def extract_all_labels(path, num_images=-1, convert_to_1hot=True):
         print(filename)
         gt_imgs.append(mpimg.imread(os.path.join(path, filename)))
 
-    IMG_WIDTH = gt_imgs[0].shape[0]
+    data = []
+    if (len(gt_imgs) > 0):
+        IMG_WIDTH = gt_imgs[0].shape[0]
 
-    if IMG_WIDTH > EFFECTIVE_INPUT_SIZE:
-        # List formed by consecutive series of patches of each image (patches ordered in row order)
-        gt_patches = [img_crop(i, IMG_PATCH_SIZE, IMG_PATCH_SIZE, is_2d=True) for i in gt_imgs]
+        if IMG_WIDTH > EFFECTIVE_INPUT_SIZE:
+            # List formed by consecutive series of patches of each image (patches ordered in row order)
+            gt_patches = [img_crop(i, IMG_PATCH_SIZE, IMG_PATCH_SIZE, is_2d=True) for i in gt_imgs]
 
-        # List of all the patches, ordered by image
-        data = numpy.asarray([gt_patches[i][j] for i in range(len(gt_patches)) for j in range(len(gt_patches[i]))])
+            # List of all the patches, ordered by image
+            data = numpy.asarray([gt_patches[i][j] for i in range(len(gt_patches)) for j in range(len(gt_patches[i]))])
 
-    else:
-        data = gt_imgs
+        else:
+            data = gt_imgs
 
     # Compute the class label of each patch based on the mean value
     if convert_to_1hot:
