@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from model import CustomModel
+from model import BaselineModel, CustomModel
 from program_constants import *
 
 class Learner:
